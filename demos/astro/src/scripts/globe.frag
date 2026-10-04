@@ -7,6 +7,8 @@ uniform float u_spin;
 uniform int u_kind;
 uniform vec2 u_center;
 uniform float u_radius;
+// Canvas pixels per stage pixel.
+uniform float u_scale;
 uniform float u_tilt;
 uniform float u_pitch;
 uniform vec3 u_light;
@@ -282,8 +284,8 @@ float worley(vec3 p) {
 }
 
 vec4 sun(vec2 p, float r, float z, vec3 q, float disk) {
-  // Corona falloff in pixels (relative to a 400px Sun), so a huge Sun doesn't get a huge corona.
-  float o = max(r - 1.0, 0.0) * u_radius / 400.0;
+  // Corona falloff in stage pixels (relative to a 400px Sun), so a huge Sun doesn't get a huge corona.
+  float o = max(r - 1.0, 0.0) * u_radius / u_scale / 400.0;
   vec2 dir = p / max(r, 1e-4);
   float rays = 0.6 + 0.6 * fbm(vec3(dir * 3.5, o * 1.2 - u_time * 0.05), 4);
   float glow = exp(-o * 3.0) * 0.55 * rays + exp(-o * 13.0) * 0.9;

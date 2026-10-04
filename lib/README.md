@@ -160,6 +160,8 @@ Custom effects are just CSS on `[data-state]`. Move things with `translate`,
 `scale` and `rotate`, not `transform`: overview and print reset those three
 (plus `opacity`, `visibility`, `filter` and `clip-path`), and `transform` is
 left alone for layout, e.g. `transform: translateX(-50%)` on a step element.
+Stick to those and `opacity`: the browser animates them off the main thread,
+while properties like `width`, `top` or `margin` re-run layout every frame.
 
 ```css
 .deck [data-effect="blur"] { transition: filter var(--deck-step-duration), opacity var(--deck-step-duration); }
@@ -406,6 +408,11 @@ const stop = onSlide(canvas, {
   `beforeprint` (`mise run pdf` dispatches it too). Without JS, `<html>` has
   `data-deck-print` or `data-deck-overview`. Skip tweens there, or the PDF
   catches them mid-animation.
+- Keep `enter` and `step` cheap. They run while the slide transition waits
+  to snapshot the new slide, so synchronous work there delays the animation.
+  Start heavy setup after `await scheduler.yield()` or a
+  `requestAnimationFrame`, and move real computation (parsing, layout
+  algorithms) to a Worker.
 
 ### Choosing a setup
 

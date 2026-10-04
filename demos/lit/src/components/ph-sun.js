@@ -10,19 +10,18 @@ export class PhSun extends LitElement {
   static styles = [
     deckType,
     css`
+      /* On the host: Chrome runs animations on SVG elements, even the outer
+         <svg>, on the main thread, but an HTML box's on the compositor. */
       :host {
+        display: block;
         color: var(--ph-sun);
         pointer-events: none;
+        animation: turn 60s linear infinite;
+        animation-play-state: var(--ph-sun-spin, paused);
       }
       svg {
         display: block;
         height: 100%;
-      }
-      g {
-        transform-box: view-box;
-        transform-origin: 0 0;
-        animation: turn 120s linear infinite;
-        animation-play-state: var(--ph-sun-spin, paused);
       }
       @keyframes turn {
         to {

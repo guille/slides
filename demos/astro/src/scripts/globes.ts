@@ -19,7 +19,7 @@ const LIGHTS: Record<string, [number, number, number]> = {
 interface View {
   body: Body;
   light: [number, number, number];
-  /** Disk centre and radius in canvas pixels. */
+  /** Disk centre and radius in stage pixels. */
   cx: number;
   cy: number;
   radius: number;
@@ -52,12 +52,12 @@ class Renderer {
     gl.enableVertexAttribArray(0);
     gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
 
-    for (const name of ["center", "time", "spin", "kind", "radius", "tilt", "pitch", "light", "atmosphere", "rings"]) {
+    for (const name of ["center", "time", "spin", "kind", "radius", "scale", "tilt", "pitch", "light", "atmosphere", "rings"]) {
       this.uniforms[name] = gl.getUniformLocation(program, `u_${name}`);
     }
   }
 
-  draw(target: HTMLCanvasElement, view: View, time: number) {
+  draw(target: HTMLCanvasElement, view: View, time: number, scale: number) {
     const { gl, canvas, uniforms: u } = this;
     const { width: w, height: h } = target;
     const { body } = view;
@@ -74,6 +74,7 @@ class Renderer {
     gl.uniform1f(u.spin, time * body.spin);
     gl.uniform1i(u.kind, body.kind);
     gl.uniform1f(u.radius, view.radius);
+    gl.uniform1f(u.scale, scale);
     gl.uniform1f(u.tilt, body.tilt);
     gl.uniform1f(u.pitch, body.pitch);
     gl.uniform3fv(u.light, view.light);
@@ -113,6 +114,9 @@ const schedule = () => (frame ||= requestAnimationFrame(tick));
 class PlanetGlobe extends HTMLElement {
   canvas!: HTMLCanvasElement;
   view!: View;
+  /** Stage size; the canvas's backing store is this times the on-screen scale. */
+  size!: { w: number; h: number };
+  scale = 1;
   // Rendering time, frozen while off-stage so a globe resumes where it stopped.
   offset = 0;
   stoppedAt = 0;
@@ -130,6 +134,7 @@ class PlanetGlobe extends HTMLElement {
       cy: num(this.dataset.cy, height / 2),
       radius: num(this.dataset.radius, (body.radius * Math.min(width, height)) / 2),
     };
+    this.size = { w: width, h: height };
     this.offset = -Number(this.dataset.phase ?? 0);
     pending.add(this);
     schedule();
@@ -144,6 +149,16 @@ class PlanetGlobe extends HTMLElement {
       leave: () => {
         if (running.delete(this)) this.stoppedAt = now();
       },
+      resize: ({ scale }) => {
+        this.scale = scale;
+        if (!this.fit()) return;
+        pending.add(this);
+        schedule();
+      },
+      // Print gets no frame between beforeprint and the snapshot, so draw now.
+      reveal: () => {
+        if (this.fit()) this.render();
+      },
     });
     this.stoppedAt = now();
   }
@@ -154,11 +169,26 @@ class PlanetGlobe extends HTMLElement {
     pending.delete(this);
   }
 
+  // One backing pixel per screen pixel. Print has no deckresize, so it gets
+  // stage resolution. Returns whether the canvas changed size.
+  fit() {
+    const printing = document.documentElement.hasAttribute("data-deck-print");
+    const k = (printing ? 1 : this.scale) * devicePixelRatio;
+    const w = Math.round(this.size.w * k);
+    const h = Math.round(this.size.h * k);
+    if (!w || (this.canvas.width === w && this.canvas.height === h)) return false;
+    this.canvas.width = w;
+    this.canvas.height = h;
+    return true;
+  }
+
   render() {
     pending.delete(this);
     renderer ??= new Renderer();
     const t = running.has(this) ? now() - this.offset : this.stoppedAt - this.offset;
-    renderer.draw(this.canvas, this.view, t);
+    const k = this.canvas.width / this.size.w;
+    const { cx, cy, radius } = this.view;
+    renderer.draw(this.canvas, { ...this.view, cx: cx * k, cy: cy * k, radius: radius * k }, t, k);
   }
 }
 

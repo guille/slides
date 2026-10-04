@@ -13,13 +13,17 @@ const css = (name) => getComputedStyle(document.documentElement).getPropertyValu
 
 export function mountStageWidget(canvas, readout) {
   const ctx = canvas.getContext("2d");
+  // Drawing units; the backing store is sized to the screen in fit().
   const W = canvas.width;
   const H = canvas.height;
   const pad = 40;
-  let frame = 0;
+  const colors = { letterbox: css("--deck-letterbox"), rule: css("--rule"), accent: css("--deck-accent") };
+  const sizeEl = readout.querySelector("[data-size]");
+  const scaleEl = readout.querySelector("[data-scale]");
   let raf = 0;
   let target = null;
   let t0 = 0;
+  let deckScale = 1;
   // Current window size in "device" pixels; eased toward the target each frame.
   const cur = { w: 1920, h: 1080 };
 
@@ -29,11 +33,15 @@ export function mountStageWidget(canvas, readout) {
     return { w: 700 + p * 2600, h: 700 + q * 700 };
   }
 
-  function render(now) {
+  // Returns whether the window has reached a preset, so the loop can stop.
+  function advance(now) {
     const goal = target ?? drift(now - t0);
     cur.w += (goal.w - cur.w) * 0.08;
     cur.h += (goal.h - cur.h) * 0.08;
+    return target !== null && Math.abs(goal.w - cur.w) < 0.5 && Math.abs(goal.h - cur.h) < 0.5;
+  }
 
+  function draw() {
     // Fit the device window into the canvas.
     const fit = Math.min((W - pad * 2) / cur.w, (H - pad * 2) / cur.h);
     const ww = cur.w * fit;
@@ -49,10 +57,10 @@ export function mountStageWidget(canvas, readout) {
     const sy = wy + (wh - sh) / 2;
 
     ctx.clearRect(0, 0, W, H);
-    ctx.fillStyle = css("--deck-letterbox");
+    ctx.fillStyle = colors.letterbox;
     roundRect(wx, wy, ww, wh, 14);
     ctx.fill();
-    ctx.strokeStyle = css("--rule");
+    ctx.strokeStyle = colors.rule;
     ctx.lineWidth = 3;
     ctx.stroke();
 
@@ -65,16 +73,26 @@ export function mountStageWidget(canvas, readout) {
     ctx.globalAlpha = 0.35;
     for (let i = 0; i < 4; i++) ctx.fillRect(sx + 120 * u, sy + (360 + i * 90) * u, (1300 - i * 160) * u, 40 * u);
     ctx.globalAlpha = 1;
-    ctx.fillStyle = css("--deck-accent");
+    ctx.fillStyle = colors.accent;
     ctx.fillRect(sx + 1450 * u, sy + 360 * u, 350 * u, 560 * u);
 
-    readout.querySelector("[data-size]").textContent = `${Math.round(cur.w)} × ${Math.round(cur.h)}`;
-    readout.querySelector("[data-scale]").textContent = `× ${scale.toFixed(3)}`;
+    // Text changes cost a layout, so only write when the text does.
+    setText(sizeEl, `${Math.round(cur.w)} × ${Math.round(cur.h)}`);
+    setText(scaleEl, `× ${scale.toFixed(3)}`);
+  }
+
+  function setText(el, text) {
+    if (el.textContent !== text) el.textContent = text;
   }
 
   function loop(now) {
-    render(now);
-    canvas.dataset.frames = ++frame;
+    const settled = advance(now);
+    draw();
+    raf = settled ? 0 : requestAnimationFrame(loop);
+  }
+
+  function play() {
+    cancelAnimationFrame(raf);
     raf = requestAnimationFrame(loop);
   }
 
@@ -83,22 +101,44 @@ export function mountStageWidget(canvas, readout) {
     ctx.roundRect(x, y, w, h, r);
   }
 
+  // One backing pixel per screen pixel. Print has no deckresize, so it gets
+  // stage resolution.
+  function fit() {
+    const printing = document.documentElement.hasAttribute("data-deck-print");
+    const k = (canvas.clientWidth * (printing ? 1 : deckScale) * devicePixelRatio) / W;
+    const w = Math.round(W * k);
+    const h = Math.round(H * k);
+    if (!w || (canvas.width === w && canvas.height === h)) return;
+    canvas.width = w;
+    canvas.height = h;
+    ctx.setTransform(k, 0, 0, k, 0, 0);
+    draw();
+  }
+
   // A still frame for print, overview and presenter previews.
-  render(0);
+  draw();
 
   return onSlide(canvas, {
-    enter: () => {
+    enter: ({ mode }) => {
       t0 = performance.now();
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(loop);
-      canvas.dataset.running = "true";
+      if (mode === "main") play();
     },
     leave: () => {
       cancelAnimationFrame(raf);
-      canvas.dataset.running = "false";
+      raf = 0;
     },
-    step: ({ step }) => {
+    step: ({ step, mode }) => {
       target = PRESETS[Math.min(step, PRESETS.length - 1)];
+      if (mode === "main" && !raf) play();
+      else if (mode !== "main") {
+        if (target) Object.assign(cur, target);
+        draw();
+      }
+    },
+    reveal: fit,
+    resize: (detail) => {
+      deckScale = detail.scale;
+      fit();
     },
   });
 }
