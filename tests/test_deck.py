@@ -113,8 +113,11 @@ def test_stage_letterboxes_at_16_9(page, vw, vh):
     page.wait_for_timeout(50)
     r = rect(page, "d.root")
     scale = min(vw / 1920, vh / 1080)
-    assert r["width"] == pytest.approx(1920 * scale, abs=1)
-    assert r["height"] == pytest.approx(1080 * scale, abs=1)
+    # Snapped to whole pixels, giving up at most 1920 / gcd(1920, 1080) = 16.
+    assert 1920 * scale - 16 <= r["width"] <= 1920 * scale + 0.01
+    assert r["height"] == pytest.approx(r["width"] * 9 / 16, abs=0.01)
+    for v in r["x"], r["y"], r["width"], r["height"]:
+        assert v == pytest.approx(round(v), abs=0.01)
     assert r["x"] == pytest.approx((vw - r["width"]) / 2, abs=1)
     assert r["y"] == pytest.approx((vh - r["height"]) / 2, abs=1)
 
