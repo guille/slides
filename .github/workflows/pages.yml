@@ -3,6 +3,11 @@ name: Pages
 on:
   push:
     branches: [master]
+    paths:
+      - demos/vanilla/**
+      - lib/**
+      - tools/site.sh
+      - .github/workflows/pages.yml
   workflow_dispatch:
 
 permissions:
