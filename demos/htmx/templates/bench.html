@@ -1,0 +1,30 @@
+{{define "bench"}}
+<table class="bench">
+  <thead><tr><th>Rows</th><th>Render</th><th>Per row</th><th>HTML</th><th>Gzipped</th><th></th></tr></thead>
+  <tbody>
+  {{range .}}
+  <tr>
+    <td>{{.Rows}}</td><td>{{dur .Took}}</td><td>{{.PerRow}}</td><td>{{.Bytes}}</td><td>{{.Gzip}}</td>
+    <td class="bar"><i style="width: {{.Width}}%"></i></td>
+  </tr>
+  {{else}}
+  <tr class="empty"><td colspan="6">
+    <span class="screen-only">Press → and the server renders the first table.</span>
+    <span class="print-only">Live only: the server renders and times these tables as the deck steps.</span>
+  </td></tr>
+  {{end}}
+  </tbody>
+</table>
+{{end}}
+
+{{define "bench-table"}}
+<table>
+  {{range .}}
+  <tr class="{{if .OK}}ok{{else}}down{{end}}">
+    <td>{{.ID}}</td>
+    <td><a href="https://{{.Host}}/status?id={{.ID}}">{{.Host}}</a></td>
+    <td>{{.Latency}}</td>
+  </tr>
+  {{end}}
+</table>
+{{end}}

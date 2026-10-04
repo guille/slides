@@ -1,0 +1,49 @@
+---
+import type { bodies } from "../scripts/bodies";
+
+interface Props {
+  body: keyof typeof bodies;
+  /** Canvas size in stage pixels. */
+  width: number;
+  height?: number;
+  /** Disk radius and centre in canvas pixels; defaults to the body's own framing. */
+  radius?: number;
+  cx?: number;
+  cy?: number;
+  light?: "left" | "right" | "top" | "front";
+  /** Starting time in seconds, to show a different face of the body. */
+  phase?: number;
+  class?: string;
+  style?: string;
+}
+const { body, width, height = width, radius, cx, cy, light, phase, class: className, style } = Astro.props;
+---
+
+<planet-globe
+  data-body={body}
+  data-light={light}
+  data-phase={phase}
+  data-radius={radius}
+  data-cx={cx}
+  data-cy={cy}
+  class={className}
+  style={`width:${width}px;height:${height}px;${style ?? ""}`}
+>
+  <canvas width={width} height={height} role="img" aria-label={body}></canvas>
+</planet-globe>
+
+<script>
+  import "../scripts/globes";
+</script>
+
+<style>
+  planet-globe {
+    display: block;
+    pointer-events: none;
+  }
+  canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+</style>

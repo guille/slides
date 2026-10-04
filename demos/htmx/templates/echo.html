@@ -1,0 +1,13 @@
+{{define "echo"}}
+<div class="echo-body">{{.Body}}</div>
+<p class="label">…which arrived as these bytes:</p>
+<pre class="echo-src"><code>{{.Source}}</code></pre>
+{{end}}
+
+{{define "echo-body"}}<p class="hello"><span>{{if .Name}}Hello, <b>{{.Name}}</b>.{{else}}Hello, stranger.{{end}}</span> <time>{{clock .At}}</time></p>
+<dl class="headers">
+  <dt>{{.Method}}</dt><dd>{{.Path}}</dd>
+  {{- range .Headers}}
+  <dt>{{.Name}}</dt><dd>{{.Value}}</dd>
+  {{- end}}
+</dl>{{end}}

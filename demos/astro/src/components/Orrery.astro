@@ -1,0 +1,324 @@
+---
+import { planets } from "../data/planets";
+
+const data = planets.map(({ id, name, color, au, yearDays, l0, diameterKm }) => ({ id, name, color, au, yearDays, l0, diameterKm }));
+---
+
+<solar-orrery data-planets={JSON.stringify(data)}>
+  <canvas width="1920" height="1080"></canvas>
+  <div class="hud">
+    <p class="date"><span data-date></span></p>
+    <div class="speeds" data-no-nav>
+      <button data-days="0" aria-label="Pause">❚❚</button>
+      <button data-days="7">1 week/s</button>
+      <button data-days="30.44">1 month/s</button>
+      <button data-days="365.25">1 year/s</button>
+      <button data-days="3652.5">10 years/s</button>
+    </div>
+  </div>
+</solar-orrery>
+
+<script>
+  import { onSlide } from "@slides/deck";
+
+  interface Body {
+    id: string;
+    name: string;
+    color: string;
+    au: number;
+    yearDays: number;
+    l0: number;
+    diameterKm: number;
+  }
+
+  const W = 1920;
+  const H = 1080;
+  const CX = 1180;
+  const CY = 560;
+  // Orbit ellipse semi-axes on screen for the outermost visible distance; the squash fakes a tilted view.
+  const RX = 690;
+  const SQUASH = 0.42;
+  const J2000 = Date.UTC(2000, 0, 1, 12);
+  // Zoom per step: the outermost distance (AU) that fits on screen.
+  const ZOOMS = [1.75, 31];
+  const STEP_SPEEDS = [30.44, 365.25];
+
+  const ease = (t: number) => 1 - Math.pow(1 - t, 3);
+  const dateFmt = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+
+  class SolarOrrery extends HTMLElement {
+    ctx!: CanvasRenderingContext2D;
+    bodies: Body[] = [];
+    asteroids: { a: number; phase: number; size: number }[] = [];
+    days = (Date.now() - J2000) / 864e5;
+    speed = STEP_SPEEDS[0];
+    zoom = ZOOMS[ZOOMS.length - 1];
+    zoomFrom = this.zoom;
+    zoomTo = this.zoom;
+    zoomStart = 0;
+    raf = 0;
+    last = 0;
+    dateEl!: HTMLElement;
+    step = 0;
+    current = false;
+    revealed = false;
+    stop?: () => void;
+
+    connectedCallback() {
+      this.ctx = this.querySelector("canvas")!.getContext("2d")!;
+      this.dateEl = this.querySelector("[data-date]")!;
+      this.bodies = JSON.parse(this.dataset.planets!);
+      let seed = 3;
+      const rnd = () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
+      this.asteroids = Array.from({ length: 1800 }, () => ({
+        a: 2.1 + Math.pow(rnd(), 0.8) * 1.2 + (rnd() - 0.5) * 0.15,
+        phase: rnd() * 360,
+        size: 0.6 + rnd() * 1.1,
+      }));
+
+      for (const button of this.querySelectorAll<HTMLButtonElement>("[data-days]")) {
+        button.addEventListener("click", () => this.setSpeed(Number(button.dataset.days)));
+      }
+      this.setSpeed(this.speed);
+      this.draw();
+
+      this.stop = onSlide(this, {
+        enter: ({ step, mode }) => {
+          this.current = true;
+          this.step = step;
+          this.zoom = this.zoomTo = this.targetZoom();
+          this.setSpeed(STEP_SPEEDS[Math.min(step, STEP_SPEEDS.length - 1)]);
+          if (mode === "main") this.play();
+          else this.draw();
+        },
+        step: ({ step }) => {
+          this.step = step;
+          this.zoomFrom = this.zoom;
+          this.zoomTo = this.targetZoom();
+          this.zoomStart = performance.now();
+          this.setSpeed(STEP_SPEEDS[Math.min(step, STEP_SPEEDS.length - 1)]);
+          if (!this.raf) this.draw();
+        },
+        leave: () => {
+          cancelAnimationFrame(this.raf);
+          this.raf = 0;
+          this.current = false;
+          this.zoom = this.zoomTo = this.targetZoom();
+          this.draw();
+        },
+        reveal: ({ all }) => {
+          this.revealed = all;
+          this.zoom = this.zoomTo = this.targetZoom();
+          this.draw();
+        },
+      });
+    }
+
+    disconnectedCallback() {
+      this.stop?.();
+      cancelAnimationFrame(this.raf);
+    }
+
+    // The current step's zoom on stage; the whole system off stage, in overview and in print.
+    targetZoom() {
+      const last = ZOOMS.length - 1;
+      return ZOOMS[this.current && !this.revealed ? Math.min(this.step, last) : last];
+    }
+
+    setSpeed(days: number) {
+      this.speed = days;
+      for (const b of this.querySelectorAll<HTMLButtonElement>("[data-days]")) {
+        b.setAttribute("aria-pressed", String(Number(b.dataset.days) === days));
+      }
+    }
+
+    play() {
+      if (matchMedia("(prefers-reduced-motion: reduce)").matches) return this.draw();
+      this.last = performance.now();
+      const loop = (now: number) => {
+        this.days += (this.speed * Math.min(now - this.last, 100)) / 1000;
+        this.last = now;
+        const t = Math.min((now - this.zoomStart) / 1600, 1);
+        this.zoom = this.zoomFrom + (this.zoomTo - this.zoomFrom) * ease(t);
+        this.draw();
+        this.raf = requestAnimationFrame(loop);
+      };
+      this.raf = requestAnimationFrame(loop);
+    }
+
+    // Square-root distance scale: the inner planets stay visible next to Neptune.
+    project(au: number, deg: number) {
+      const r = RX * Math.sqrt(au / this.zoom);
+      const a = (deg * Math.PI) / 180;
+      return { x: CX + Math.cos(a) * r, y: CY - Math.sin(a) * r * SQUASH, r };
+    }
+
+    // Planets beyond the current zoom fade out instead of crowding the edges.
+    visibility(b: Body) {
+      return Math.min(Math.max((this.zoom * 1.15 - b.au) / (this.zoom * 0.15), 0), 1);
+    }
+
+    longitude(b: { l0: number; yearDays: number }) {
+      return b.l0 + (360 / b.yearDays) * this.days;
+    }
+
+    draw() {
+      const { ctx } = this;
+      ctx.clearRect(0, 0, W, H);
+      this.dateEl.textContent = dateFmt.format(J2000 + this.days * 864e5);
+
+      // Asteroid belt.
+      ctx.fillStyle = "rgb(200 190 175 / 0.5)";
+      for (const a of this.asteroids) {
+        const p = this.project(a.a, a.phase + (360 / (365.25 * Math.pow(a.a, 1.5))) * this.days);
+        ctx.fillRect(p.x, p.y, a.size, a.size);
+      }
+
+      // Orbits, with a fading trail behind each planet.
+      for (const b of this.bodies) {
+        const { r } = this.project(b.au, 0);
+        if (r > 2400) continue;
+        ctx.strokeStyle = "rgb(150 165 230 / 0.22)";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.ellipse(CX, CY, r, r * SQUASH, 0, 0, Math.PI * 2);
+        ctx.stroke();
+
+        const lon = this.longitude(b);
+        ctx.lineWidth = 3;
+        ctx.lineCap = "round";
+        const segments = 40;
+        for (let i = 0; i < segments; i++) {
+          const a0 = ((lon - i * 2) * Math.PI) / 180;
+          const a1 = ((lon - (i + 1) * 2) * Math.PI) / 180;
+          ctx.strokeStyle = b.color;
+          ctx.globalAlpha = 0.7 * (1 - i / segments) ** 2 * this.visibility(b);
+          ctx.beginPath();
+          ctx.ellipse(CX, CY, r, r * SQUASH, 0, -a0, -a1);
+          ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
+      }
+
+      // Planets behind the Sun first, then the Sun, then the ones in front.
+      const placed = this.bodies.map((b) => ({ b, ...this.project(b.au, this.longitude(b)) }));
+      const behind = placed.filter((p) => p.y < CY);
+      const front = placed.filter((p) => p.y >= CY);
+      for (const p of behind) this.planet(p);
+      this.sun();
+      for (const p of front) this.planet(p);
+    }
+
+    sun() {
+      const { ctx } = this;
+      const glow = ctx.createRadialGradient(CX, CY, 0, CX, CY, 220);
+      glow.addColorStop(0, "rgb(255 240 200 / 1)");
+      glow.addColorStop(0.08, "rgb(255 200 90 / 0.95)");
+      glow.addColorStop(0.2, "rgb(255 140 40 / 0.35)");
+      glow.addColorStop(1, "rgb(255 90 20 / 0)");
+      ctx.fillStyle = glow;
+      ctx.beginPath();
+      ctx.arc(CX, CY, 220, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    planet({ b, x, y }: { b: Body; x: number; y: number }) {
+      const fade = this.visibility(b);
+      if (fade === 0 || x < -50 || x > W + 50 || y < -50 || y > H + 50) return;
+      const { ctx } = this;
+      ctx.save();
+      ctx.globalAlpha = fade;
+      const size = 6 + Math.log10(b.diameterKm / 1000) * 6;
+      const glow = ctx.createRadialGradient(x, y, 0, x, y, size * 4);
+      glow.addColorStop(0, b.color);
+      glow.addColorStop(1, "transparent");
+      ctx.globalAlpha = 0.35 * fade;
+      ctx.fillStyle = glow;
+      ctx.beginPath();
+      ctx.arc(x, y, size * 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = fade;
+
+      // Lit from the Sun's side.
+      const toSun = Math.atan2(CY - y, CX - x);
+      const shade = ctx.createRadialGradient(
+        x + Math.cos(toSun) * size * 0.5, y + Math.sin(toSun) * size * 0.5, 0,
+        x, y, size,
+      );
+      shade.addColorStop(0, "#fff");
+      shade.addColorStop(0.25, b.color);
+      shade.addColorStop(1, "#05060c");
+      ctx.fillStyle = shade;
+      ctx.beginPath();
+      ctx.arc(x, y, size, 0, Math.PI * 2);
+      ctx.fill();
+
+      if (b.id === "saturn") {
+        ctx.strokeStyle = "rgb(236 211 154 / 0.8)";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.ellipse(x, y, size * 2.2, size * 0.7, -0.35, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      ctx.font = "500 20px 'JetBrains Mono Variable', monospace";
+      ctx.fillStyle = "rgb(238 240 251 / 0.85)";
+      const flip = x > W - 220;
+      ctx.textAlign = flip ? "right" : "left";
+      ctx.fillText(b.name.toUpperCase(), flip ? x - size - 12 : x + size + 12, y - size - 6);
+      ctx.restore();
+    }
+  }
+
+  customElements.define("solar-orrery", SolarOrrery);
+</script>
+
+<style>
+  solar-orrery {
+    position: absolute;
+    inset: 0;
+  }
+  canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .hud {
+    position: absolute;
+    left: var(--deck-pad);
+    bottom: 96px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+  .date {
+    font: 500 64px/1 var(--deck-font-mono);
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+  }
+  .speeds {
+    display: flex;
+    gap: 10px;
+  }
+  button {
+    font: 500 20px/1 var(--deck-font-mono);
+    color: var(--deck-muted);
+    background: rgb(255 255 255 / 0.04);
+    border: 1px solid rgb(255 255 255 / 0.14);
+    border-radius: 999px;
+    padding: 12px 18px;
+    cursor: pointer;
+    transition: all 200ms ease;
+  }
+  button:hover {
+    color: var(--deck-fg);
+    border-color: rgb(255 255 255 / 0.35);
+  }
+  button[aria-pressed="true"] {
+    color: var(--deck-accent-fg);
+    background: var(--deck-accent);
+    border-color: var(--deck-accent);
+    box-shadow: 0 0 24px rgb(255 181 71 / 0.5);
+  }
+</style>

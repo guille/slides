@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>slides · demos</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #faf9f6; --fg: #1d1d1b; --muted: #6b6a66; --line: #e2e0da;
+      --up: #2f8a4a; --down: #b9b6ae;
+      font: 16px/1.5 system-ui, sans-serif;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root { --bg: #161615; --fg: #ecebe7; --muted: #9a9892; --line: #2c2c2a; --up: #5cc47c; --down: #555451; }
+    }
+    body { margin: 0; background: var(--bg); color: var(--fg); }
+    main { max-width: 40rem; margin: 0 auto; padding: 3rem 1rem; }
+    h1 { margin: 0 0 .25rem; font-size: 1.5rem; }
+    p { margin: 0 0 2rem; color: var(--muted); }
+    ul { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+    li { border-bottom: 1px solid var(--line); }
+    a { display: grid; grid-template-columns: auto 1fr auto; gap: .25rem 1rem; align-items: baseline;
+        padding: 1rem .5rem; color: inherit; text-decoration: none; }
+    a:hover { background: color-mix(in srgb, var(--fg) 5%, transparent); }
+    a::before { content: ""; width: .6rem; height: .6rem; border-radius: 50%; background: var(--down); }
+    a.up::before { background: var(--up); }
+    a.down { color: var(--muted); }
+    b { font-weight: 600; }
+    small { grid-column: 2 / -1; color: var(--muted); }
+    code { color: var(--muted); font-size: .875rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>slides</h1>
+    <p>Example decks. Start them all with <code>mise run dev</code>.</p>
+    <ul>
+      <li><a href="/demos/vanilla/"><b>vanilla</b><code>:8000</code><small>Plain HTML, no build step</small></a></li>
+      <li><a href="http://localhost:5174/"><b>svelte</b><code>:5174</code><small>Svelte 5 + Vite, interactive components</small></a></li>
+      <li><a href="http://localhost:5175/"><b>astro</b><code>:5175</code><small>Astro, a solar-system tour with procedural WebGL planets</small></a></li>
+      <li><a href="http://localhost:5176/"><b>lit</b><code>:5176</code><small>Lit web components + Vite, components in shadow DOM</small></a></li>
+      <li><a href="http://localhost:8090/"><b>htmx</b><code>:8090</code><small>Go templates swapped in by htmx</small></a></li>
+    </ul>
+  </main>
+  <script>
+    // An opaque no-cors response still proves the server is listening; a refused connection rejects.
+    for (const a of document.querySelectorAll("main a")) {
+      fetch(a.href, { mode: "no-cors", cache: "no-store" }).then(
+        () => a.classList.add("up"),
+        () => a.classList.add("down"),
+      );
+    }
+  </script>
+</body>
+</html>

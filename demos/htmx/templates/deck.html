@@ -1,0 +1,159 @@
+{{define "deck"}}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HTML over the wire</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="/lib/deck.css">
+  <link rel="stylesheet" href="/static/theme.css">
+  <script src="/static/htmx.min.js"></script>
+  <script type="module" src="/static/boot.js"></script>
+</head>
+<body>
+  <main class="deck" data-transition="fade" data-progress data-slide-numbers>
+
+    <section data-layout="title" id="intro" data-no-number>
+      <p class="kicker">Go · html/template · htmx</p>
+      <h1>HTML over <em>the wire</em></h1>
+      <dl class="provenance">
+        <div><dt>Rendered</dt><dd>{{clock .Now}}</dd></div>
+        <div><dt>By</dt><dd>{{.GoVersion}} {{.GOOS}}/{{.GOARCH}}</dd></div>
+        <div><dt>Process</dt><dd>pid {{.PID}} on {{.Host}}</dd></div>
+        <div><dt>CPUs</dt><dd>{{.CPUs}}</dd></div>
+      </dl>
+      <p class="byline">Reload and the timestamp moves: this page is a template, not a file. <kbd>P</kbd> presenter · <kbd>O</kbd> overview</p>
+      <aside class="notes">
+        <p>Everything under the title was filled in by the Go process serving this deck, at the moment you loaded it. Reload to prove it.</p>
+        <p>Every live element from here on is rendered on the server by html/template and swapped in by htmx. There is no client-side rendering code in this deck.</p>
+      </aside>
+    </section>
+
+    <section data-layout="center" id="premise">
+      <p class="kicker">The premise</p>
+      <p class="huge">The server<br>already <em>knows</em>.</p>
+      <div class="columns facts">
+        <p data-step data-effect="rise"><strong>It renders</strong>html/template, escaping by context</p>
+        <p data-step data-effect="rise"><strong>htmx swaps</strong>{{.HTMXSize}} of JS, gzipped, vendored</p>
+        <p data-step data-effect="rise"><strong>The deck moves</strong>and doesn't know the server exists</p>
+      </div>
+      <aside class="notes">The state lives on the server: metrics, timings, the request log. So instead of shipping JSON and a renderer, ship the HTML. Three pieces that know nothing about each other.</aside>
+    </section>
+
+    <section data-layout="section" id="wire-part">
+      <span class="chapter">01</span>
+      <h2>Ask the server</h2>
+      <p>Every request from here on is real. Watch the bottom-left corner.</p>
+      <aside class="notes">Point at the wire readout in the corner. It's empty until the first htmx request.</aside>
+    </section>
+
+    <section data-layout="split" id="echo">
+      <h2>It shows its work</h2>
+      <div class="echo-controls" data-no-nav>
+        <p class="label">Click, or type a name and press Enter</p>
+        {{template "echo-form"}}
+        <p class="small muted">Try <code>&lt;b&gt;you&lt;/b&gt;</code> as a name.</p>
+      </div>
+      <div id="echo-out" class="echo-out">
+        <p class="placeholder">The response lands here.</p>
+      </div>
+      <aside class="notes">
+        <p>GET first: the server lists the HX-* headers htmx sent. HX-Trigger is the id of the element that fired, HX-Target where the answer goes.</p>
+        <p>Then POST a name with markup in it. html/template escapes it, and the source panel below shows the escaped bytes.</p>
+      </aside>
+    </section>
+
+    <section id="echo-src">
+      <h2>Four attributes did that</h2>
+      <pre class="code-lg"><code>{{source "templates/echo-form.html" "hx-"}}</code></pre>
+      <p class="small muted">This is <code>templates/echo-form.html</code>, read from the binary's <code>embed.FS</code> and highlighted while this page rendered. It can't drift from what runs.</p>
+      <aside class="notes">Each step lights a line with an hx- attribute: verb plus URL, then where the response goes. The form serializes its inputs on its own. The server picked which lines become steps: it marked every line matching "hx-".</aside>
+    </section>
+
+    <section data-layout="section" id="runtime-part">
+      <span class="chapter">02</span>
+      <h2>Live from the runtime</h2>
+      <p>The process serving these slides, observed by itself.</p>
+      <aside class="notes">Part two: a dashboard with no chart library.</aside>
+    </section>
+
+    <section id="pulse-slide">
+      <h2>This process, right now</h2>
+      <div id="pulse" class="tiles" hx-get="/pulse" hx-trigger="every 1s [onStage(this)]">{{template "pulse" .Pulse}}</div>
+      <div class="actions" data-no-nav>
+        <button hx-post="/pulse/spawn" hx-target="#pulse-status">Spawn 10k goroutines</button>
+        <button hx-post="/pulse/alloc" hx-target="#pulse-status">Allocate 256 MiB</button>
+        <button hx-post="/pulse/gc" hx-target="#pulse-status">runtime.GC()</button>
+        <output id="pulse-status"></output>
+      </div>
+      <aside class="notes">
+        <p>Polls every second, but only while this slide is on screen. The SVG sparklines are rendered by a Go template.</p>
+        <p>Each button's response carries the status line and, out of band, freshly sampled tiles, so the effect shows without waiting for the next poll.</p>
+      </aside>
+    </section>
+
+    <section data-layout="split" id="spark-src">
+      <h2>The chart is a template</h2>
+      <pre class="code-lg"><code>{{source "templates/spark.html" ""}}</code></pre>
+      <ul class="points">
+        <li data-step data-effect="rise">Go projects the points into the viewBox</li>
+        <li data-step data-effect="rise">The template only draws two <code>&lt;path&gt;</code>s</li>
+        <li data-step data-effect="rise">The same template paints the first frame and every poll</li>
+      </ul>
+      <aside class="notes">Opening the page renders the dashboard with real data. htmx only keeps it fresh. That's why the presenter previews and the PDF show real numbers, not spinners.</aside>
+    </section>
+
+    <section data-layout="split" id="explore">
+      <h2>Every runtime metric, searchable</h2>
+      <div class="search" data-no-nav>
+        <input type="search" name="q" placeholder="gc, sched, heap…" autocomplete="off"
+          hx-get="/metrics/search" hx-trigger="input changed delay:150ms, search" hx-target="#results">
+        <div id="results" class="results">{{template "results" .Search}}</div>
+      </div>
+      <div id="metric-view" class="metric-view">{{template "view" .View}}</div>
+      <aside class="notes">
+        <p>runtime/metrics publishes a self-describing catalog. The search runs on the server with every keystroke, debounced by htmx.</p>
+        <p>Pick a histogram, like /gc/pauses:seconds, and the server computes the quantiles and draws the bars.</p>
+      </aside>
+    </section>
+
+    <section data-layout="split" id="oob">
+      <h2>One response, two places</h2>
+      <pre class="code-md"><code>{{gofunc "wire.go" "tap" "ServeHTTP|WriteTo|ExecuteTemplate"}}</code></pre>
+      <div class="oob-side">
+        <pre class="code-md"><code>{{source "templates/wire.html" "hx-swap-oob"}}</code></pre>
+        <p class="pointer">Every fragment ends with this, and htmx swaps it into the corner by <code>id</code>.</p>
+      </div>
+      <aside class="notes">A middleware wraps every fragment handler: buffer the response, time it, then append the wire readout as an out-of-band swap. No handler knows the corner exists.</aside>
+    </section>
+
+    <section data-layout="section" id="cost-part">
+      <span class="chapter">03</span>
+      <h2>Isn't that slow?</h2>
+      <p>Let's measure it on the server, live.</p>
+      <aside class="notes">The usual objection: rendering on the server costs time and bytes.</aside>
+    </section>
+
+    <section id="bench-slide" data-step-count="{{benchSteps}}">
+      <h2>Rendering tables through html/template</h2>
+      <div id="bench" hx-get="/bench" hx-vals="js:{step: stepOf(this)}"
+        hx-trigger="load[onStage(this)], stepchange from:closest section">{{template "bench"}}</div>
+      <p class="small muted">A row: three cells, an escaped URL, a class switch. Measured on each step, on this machine, just now.</p>
+      <aside class="notes">Each step makes the server render ten times more rows and report how long it took. The deck's own stepchange event is the htmx trigger.</aside>
+    </section>
+
+    <section data-layout="center" id="end" data-no-number>
+      <h2>View source.</h2>
+      <div id="receipt" class="receipt" hx-get="/receipt"
+        hx-trigger="load[onStage(this)], slideenter from:closest section">{{template "receipt" .Receipt}}</div>
+      <p class="muted small"><code>mise run dev:htmx</code> · the code slides showed the real files</p>
+      <aside class="notes">The receipt for this talk: every htmx exchange the server handled while I presented, not counting the presenter previews.</aside>
+    </section>
+
+    <output id="wire" class="wire"><i></i> no requests yet</output>
+  </main>
+</body>
+</html>
+{{end}}

@@ -1,0 +1,50 @@
+---
+import "@fontsource/instrument-serif";
+import "@fontsource/instrument-serif/400-italic.css";
+import "@fontsource-variable/space-grotesk";
+import "@fontsource-variable/jetbrains-mono";
+import "@slides/deck/deck.css";
+import "../styles/theme.css";
+import { random } from "../lib/random";
+
+interface Props {
+  title: string;
+}
+const { title } = Astro.props;
+
+const base = import.meta.env.BASE_URL.replace(/\/?$/, "/");
+const sky = ["nebula", "far", "near"].map((layer) => `--sky-${layer}: url("${base}sky/${layer}.svg")`).join(";");
+
+// A few stars twinkle on their own layer: opacity-only animations stay on the compositor.
+const rnd = random(2026);
+const twinkles = Array.from({ length: 36 }, () => ({
+  left: `${(rnd() * 100).toFixed(2)}%`,
+  top: `${(rnd() * 100).toFixed(2)}%`,
+  size: `${(1 + rnd() * 1.4).toFixed(1)}px`,
+  delay: `${(-rnd() * 6).toFixed(2)}s`,
+  duration: `${(3 + rnd() * 5).toFixed(2)}s`,
+}));
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+  </head>
+  <body style={sky}>
+    <div class="sky" aria-hidden="true"><i class="nebula"></i><i class="far"></i><i class="near"></i></div>
+    <div class="twinkles" aria-hidden="true">
+      {twinkles.map((t) => <i style={`left:${t.left};top:${t.top};--size:${t.size};animation-delay:${t.delay};animation-duration:${t.duration}`} />)}
+    </div>
+    <main class="deck" data-transition="fade" data-progress>
+      <slot />
+    </main>
+    <script>
+      import { deck } from "@slides/deck";
+
+      deck();
+    </script>
+  </body>
+</html>

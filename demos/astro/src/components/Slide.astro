@@ -1,0 +1,18 @@
+---
+interface Props {
+  id?: string;
+  layout?: "title" | "section" | "center" | "split" | "bleed" | "quote";
+  transition?: string;
+  steps?: number;
+  class?: string;
+  style?: string;
+}
+const { layout, transition, steps, class: className, ...rest } = Astro.props;
+// Wrappers forward their notes slot even when it's empty.
+const notes = Astro.slots.has("notes") ? (await Astro.slots.render("notes")).trim() : "";
+---
+
+<section data-layout={layout} data-transition={transition} data-step-count={steps} class={className} {...rest}>
+  <slot />
+  {notes && <aside class="notes" set:html={notes} />}
+</section>

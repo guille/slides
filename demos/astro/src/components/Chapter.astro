@@ -1,0 +1,119 @@
+---
+import Slide from "./Slide.astro";
+import { planets } from "../data/planets";
+
+interface Props {
+  id: string;
+  part: string;
+  /** Planets whose orbits are highlighted. */
+  highlight: string[];
+  /** The outermost orbit drawn, in AU; sets the zoom. */
+  reach: number;
+  glow: string;
+  /** How far below the Sun the highlighted bodies line up, clear of the text. */
+  row?: number;
+}
+const { id, part, highlight, reach, glow, row = 220 } = Astro.props;
+
+// The system seen from above at a low angle, centred off the left edge of the stage.
+const CX = -120;
+const CY = 620;
+const R = 2050;
+const SQUASH = 0.34;
+// Highlighted bodies sit on a common row under the text.
+const orbits = planets.map((p) => {
+  const r = R * Math.sqrt(p.au / reach);
+  const angle = Math.asin(Math.min(1, row / (r * SQUASH)));
+  return { ...p, r, on: highlight.includes(p.id), x: CX + Math.cos(angle) * r, y: CY + Math.sin(angle) * r * SQUASH };
+});
+---
+
+<Slide id={id} layout="section" transition="warp" class="chapter" style={`--glow:${glow}`}>
+  <div class="backdrop">
+    <svg viewBox="0 0 1920 1080" aria-hidden="true">
+      <defs>
+        <radialGradient id={`${id}-sun`}>
+          <stop offset="0" stop-color="#fff6dc" />
+          <stop offset="0.12" stop-color="#ffd27a" />
+          <stop offset="0.35" stop-color="#ff8a3d" stop-opacity="0.35" />
+          <stop offset="1" stop-color="#ff5a1f" stop-opacity="0" />
+        </radialGradient>
+      </defs>
+      <circle cx={CX} cy={CY} r="520" fill={`url(#${id}-sun)`} />
+      {
+        orbits.map((o) => (
+          <ellipse cx={CX} cy={CY} rx={o.r} ry={o.r * SQUASH} class:list={["orbit", { on: o.on }]} style={`--c:${o.color}`} />
+        ))
+      }
+      {
+        orbits
+          .filter((o) => o.on)
+          .map((o) => (
+            <g class="body" style={`--c:${o.color}`}>
+              <circle cx={o.x} cy={o.y} r="26" class="aura" />
+              <circle cx={o.x} cy={o.y} r="7" />
+              <text x={o.x + 20} y={o.y - 18}>{o.name}</text>
+            </g>
+          ))
+      }
+    </svg>
+  </div>
+  <p class="kicker">{part}</p>
+  <h1><slot name="title" /></h1>
+  <p class="lede"><slot /></p>
+  <slot name="notes" slot="notes" />
+</Slide>
+
+<style>
+  .chapter {
+    padding-left: 760px;
+    gap: 36px;
+  }
+  .chapter :global(.backdrop) {
+    background: radial-gradient(ellipse 70% 90% at 0% 60%, color-mix(in oklab, var(--glow) 30%, transparent), transparent 70%);
+  }
+  svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .orbit {
+    fill: none;
+    stroke: rgb(160 175 235 / 0.14);
+    stroke-width: 1.5;
+  }
+  .orbit.on {
+    stroke: color-mix(in oklab, var(--c) 70%, transparent);
+    stroke-width: 2.5;
+    filter: drop-shadow(0 0 6px var(--c));
+  }
+  .body circle {
+    fill: var(--c);
+  }
+  .body .aura {
+    opacity: 0.25;
+    filter: blur(8px);
+  }
+  .body text {
+    font: 500 20px var(--deck-font-mono);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    fill: var(--deck-fg);
+    opacity: 0.8;
+  }
+  .kicker {
+    position: relative;
+    color: color-mix(in oklab, var(--glow), white 30%);
+  }
+  h1 {
+    position: relative;
+    font-size: 200px;
+    line-height: 0.88;
+  }
+  .lede {
+    position: relative;
+    max-width: 22ch;
+    opacity: 1;
+  }
+</style>

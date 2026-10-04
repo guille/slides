@@ -1,0 +1,687 @@
+/*
+ * Later layers win. deck.core (stage mechanics) sits on top so themes can't
+ * break positioning by accident; unlayered deck CSS still beats every layer.
+ */
+@layer deck.base, deck.layouts, deck.steps, deck.theme, deck.core;
+
+/* ---------- Tokens ---------- */
+
+@layer deck.base {
+  :root {
+    --deck-bg: #fbfaf7;
+    --deck-fg: #1c1b19;
+    --deck-muted: #6b6862;
+    --deck-accent: #d9480f;
+    --deck-accent-fg: #ffffff;
+    --deck-section-bg: var(--deck-accent);
+    --deck-section-fg: var(--deck-accent-fg);
+    --deck-surface: #efece6;
+    --deck-letterbox: #111111;
+    --deck-font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --deck-font-heading: var(--deck-font-sans);
+    --deck-font-mono: ui-monospace, "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+    --deck-size-body: 40px;
+    --deck-size-small: 28px;
+    --deck-size-h1: 112px;
+    --deck-size-h2: 72px;
+    --deck-size-h3: 48px;
+    --deck-weight-h1: 800;
+    --deck-weight-h2: 700;
+    --deck-weight-h3: 600;
+    --deck-line-height: 1.4;
+    --deck-heading-line-height: 1.1;
+    --deck-heading-tracking: -0.02em;
+    --deck-heading-variation: normal;
+    --deck-pad: 112px;
+    --deck-gap: 40px;
+    --deck-radius: 16px;
+    --deck-transition-duration: 450ms;
+    --deck-step-duration: 300ms;
+  }
+}
+
+/* ---------- Core mechanics (stage, visibility, modes) ---------- */
+
+@layer deck.core {
+  html[data-deck-mode],
+  html[data-deck-mode] body {
+    margin: 0;
+    height: 100%;
+    overflow: hidden;
+    background: var(--deck-letterbox);
+  }
+
+  .deck {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    width: var(--deck-width, 1920px);
+    height: var(--deck-height, 1080px);
+    transform: translate(-50%, -50%) scale(var(--deck-scale, 1));
+    counter-reset: deck-slide;
+    view-transition-name: deck;
+  }
+
+  /* !important: unlayered deck CSS must not knock slides out of the stage. */
+  .deck > section {
+    position: absolute !important;
+    inset: 0 !important;
+    box-sizing: border-box;
+    overflow: hidden;
+    /* Keeps .backdrop's negative z-index above the slide background. */
+    isolation: isolate;
+    counter-increment: deck-slide;
+  }
+
+  @media screen {
+    html:not([data-deck-overview]) .deck > section:not([data-state="current"]) {
+      visibility: hidden !important;
+    }
+  }
+
+  .deck .notes {
+    display: none !important;
+  }
+
+  html[data-deck-idle][data-deck-mode="main"]:not([data-deck-overview]) {
+    cursor: none;
+  }
+
+  html[data-deck-mode="main"][data-deck-blackout]::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: #000;
+  }
+
+  html[data-deck-mode="preview"] {
+    cursor: default;
+    pointer-events: none;
+  }
+
+  /* Overview grid */
+  html[data-deck-overview] .deck {
+    inset: 0;
+    left: 0;
+    top: 0;
+    width: auto;
+    height: auto;
+    transform: none;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+    display: grid;
+    grid-template-columns: repeat(var(--deck-cols, 4), max-content);
+    align-content: start;
+    gap: 24px;
+    padding: 24px;
+    view-transition-name: none;
+  }
+
+  html[data-deck-overview] .deck::after {
+    display: none;
+  }
+
+  /* Persistent chrome belongs to the stage, not to any thumbnail. */
+  html[data-deck-overview] .deck > :not(section) {
+    display: none !important;
+  }
+
+  html[data-deck-overview] .deck > section {
+    position: relative !important;
+    inset: auto !important;
+    width: var(--deck-width, 1920px);
+    height: var(--deck-height, 1080px);
+    /* Render at full size and shrink, so thumbnails match the stage exactly.
+       Negative margins shrink the grid footprint to the scaled size. */
+    transform: scale(var(--deck-thumb, 0.2));
+    transform-origin: 0 0;
+    margin-right: calc(var(--deck-width, 1920px) * (var(--deck-thumb, 0.2) - 1));
+    margin-bottom: calc(var(--deck-height, 1080px) * (var(--deck-thumb, 0.2) - 1));
+    cursor: pointer;
+    outline: 0 solid var(--deck-accent);
+  }
+
+  html[data-deck-overview] .deck > section > * {
+    pointer-events: none;
+  }
+
+  html[data-deck-overview] .deck > section[data-state="current"] {
+    outline-width: 24px;
+  }
+
+  html[data-deck-overview] .deck > section[data-overflow] {
+    box-shadow: inset 0 0 0 16px #e03131;
+  }
+
+  html[data-deck-overview] [data-step] {
+    opacity: 1 !important;
+    visibility: visible !important;
+    translate: none !important;
+    scale: none !important;
+    rotate: none !important;
+    filter: none !important;
+    clip-path: none !important;
+  }
+
+  html[data-deck-mode="presenter"] .deck {
+    display: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .deck *,
+    .deck::after {
+      transition: none !important;
+      animation: none !important;
+    }
+  }
+}
+
+/* ---------- Slide transitions (View Transitions, opt-in) ---------- */
+
+@layer deck.core {
+  ::view-transition-group(deck) {
+    animation-duration: var(--deck-transition-duration);
+  }
+
+  /* Only the stage animates. Whatever is behind it (body, the letterbox)
+     stays live instead of crossfading with a snapshot of itself. */
+  html[data-deck-mode]::view-transition-old(root) {
+    display: none;
+  }
+  html[data-deck-mode]::view-transition-new(root) {
+    animation: none;
+  }
+
+  html[data-deck-transition="fade"]::view-transition-old(deck),
+  html[data-deck-transition="fade"]::view-transition-new(deck) {
+    animation-duration: var(--deck-transition-duration);
+  }
+
+  html[data-deck-transition="slide"]::view-transition-old(deck) {
+    animation: var(--deck-transition-duration) cubic-bezier(0.65, 0, 0.35, 1) both deck-slide-out;
+  }
+  html[data-deck-transition="slide"]::view-transition-new(deck) {
+    animation: var(--deck-transition-duration) cubic-bezier(0.65, 0, 0.35, 1) both deck-slide-in;
+  }
+  html[data-deck-transition="slide"][data-deck-direction="backward"]::view-transition-old(deck) {
+    animation-name: deck-slide-out-back;
+  }
+  html[data-deck-transition="slide"][data-deck-direction="backward"]::view-transition-new(deck) {
+    animation-name: deck-slide-in-back;
+  }
+
+  @keyframes deck-slide-out { to { transform: translateX(-100%); } }
+  @keyframes deck-slide-in { from { transform: translateX(100%); } }
+  @keyframes deck-slide-out-back { to { transform: translateX(100%); } }
+  @keyframes deck-slide-in-back { from { transform: translateX(-100%); } }
+}
+
+/* ---------- Base slide typography ---------- */
+
+@layer deck.base {
+  /* Slide numbers and progress bar: opt-in attributes on .deck */
+  .deck[data-slide-numbers] > section:not([data-no-number])::after {
+    content: counter(deck-slide);
+    position: absolute;
+    right: calc(var(--deck-pad) / 2);
+    bottom: calc(var(--deck-pad) / 3);
+    font: 500 var(--deck-size-small) / 1 var(--deck-font-sans);
+    color: var(--deck-muted);
+  }
+
+  .deck[data-progress]::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    z-index: 10;
+    height: 8px;
+    width: calc(var(--deck-progress, 0) * 100%);
+    background: var(--deck-accent);
+    transition: width var(--deck-step-duration) ease;
+  }
+
+  .deck > section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--deck-gap);
+    padding: var(--deck-pad);
+    background: var(--deck-bg);
+    color: var(--deck-fg);
+    font: 400 var(--deck-size-body) / var(--deck-line-height) var(--deck-font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .deck :is(h1, h2, h3, p, ul, ol, pre, blockquote, figure, table) {
+    margin: 0;
+  }
+
+  .deck :is(h1, h2, h3) {
+    font-family: var(--deck-font-heading);
+    line-height: var(--deck-heading-line-height);
+    letter-spacing: var(--deck-heading-tracking);
+    font-variation-settings: var(--deck-heading-variation);
+    text-wrap: balance;
+  }
+
+  .deck h1 { font-size: var(--deck-size-h1); font-weight: var(--deck-weight-h1); }
+  .deck h2 { font-size: var(--deck-size-h2); font-weight: var(--deck-weight-h2); }
+  .deck h3 { font-size: var(--deck-size-h3); font-weight: var(--deck-weight-h3); }
+
+  .deck p { text-wrap: pretty; }
+
+  .deck :is(ul, ol) {
+    padding-left: 1.2em;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4em;
+  }
+
+  .deck li::marker { color: var(--deck-accent); }
+
+  .deck a { color: var(--deck-accent); }
+
+  .deck strong { font-weight: 700; }
+  .deck em { font-style: italic; }
+
+  .deck code {
+    font-family: var(--deck-font-mono);
+    font-size: 0.9em;
+    background: var(--deck-surface);
+    padding: 0.1em 0.3em;
+    border-radius: 0.25em;
+  }
+
+  .deck pre {
+    font: 400 0.7em / 1.5 var(--deck-font-mono);
+    background: var(--deck-surface);
+    border-radius: var(--deck-radius);
+    padding: 1em 1.2em;
+    overflow: hidden;
+  }
+
+  .deck pre code {
+    background: none;
+    padding: 0;
+    font-size: inherit;
+  }
+
+  .deck blockquote {
+    border-left: 8px solid var(--deck-accent);
+    padding-left: 1em;
+  }
+
+  .deck img,
+  .deck video {
+    max-width: 100%;
+    max-height: 100%;
+    border-radius: var(--deck-radius);
+  }
+
+  .deck figure {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+    min-height: 0;
+  }
+
+  .deck figcaption {
+    font-size: var(--deck-size-small);
+    color: var(--deck-muted);
+  }
+
+  .deck table {
+    border-collapse: collapse;
+    font-size: 0.8em;
+  }
+  .deck :is(th, td) {
+    text-align: left;
+    padding: 0.4em 0.8em;
+    border-bottom: 2px solid var(--deck-surface);
+  }
+  .deck th { color: var(--deck-muted); font-weight: 600; }
+
+  .deck .muted { color: var(--deck-muted); }
+  .deck .accent { color: var(--deck-accent); }
+  .deck .small { font-size: var(--deck-size-small); }
+  .deck .grow { flex: 1; min-height: 0; }
+  /* Decoration behind the content. Whatever runs off the slide's edge is
+     clipped here, so it doesn't count as overflow. */
+  .deck .backdrop {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    overflow: clip;
+    pointer-events: none;
+  }
+  .deck .columns {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    gap: var(--deck-gap);
+  }
+}
+
+/* ---------- Layouts: <section data-layout="..."> ---------- */
+
+@layer deck.layouts {
+  .deck > section[data-layout="title"] {
+    justify-content: center;
+  }
+  .deck > section[data-layout="title"] :is(p, h2, h3) {
+    color: var(--deck-muted);
+    font-weight: 400;
+  }
+
+  .deck > section[data-layout="section"] {
+    justify-content: center;
+    background: var(--deck-section-bg);
+    color: var(--deck-section-fg);
+  }
+  .deck > section[data-layout="section"] :is(h1, h2) {
+    font-size: var(--deck-size-h1);
+  }
+  .deck > section[data-layout="section"] :is(p, .muted) {
+    color: inherit;
+    opacity: 0.8;
+  }
+  .deck[data-slide-numbers] > section[data-layout="section"]::after {
+    color: inherit;
+    opacity: 0.6;
+  }
+  .deck[data-progress][data-slide-layout="section"]::after {
+    background: var(--deck-section-fg);
+  }
+
+  .deck > section[data-layout="center"] {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+
+  .deck > section[data-layout="split"] {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto 1fr;
+    column-gap: calc(var(--deck-gap) * 2);
+    row-gap: var(--deck-gap);
+  }
+  .deck > section[data-layout="split"] > :is(h1, h2, h3, header) {
+    grid-column: 1 / -1;
+  }
+  .deck > section[data-layout="split"] > :not(h1, h2, h3, header, .notes, .backdrop) {
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--deck-gap);
+  }
+
+  .deck > section[data-layout="bleed"] {
+    padding: 0;
+  }
+  .deck > section[data-layout="bleed"] > :is(img, video) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    object-fit: cover;
+    border-radius: 0;
+  }
+  .deck > section[data-layout="bleed"] > :not(img, video, .notes, .backdrop) {
+    position: absolute;
+    left: var(--deck-pad);
+    bottom: var(--deck-pad);
+    max-width: 60%;
+    padding: 0.6em 0.9em;
+    border-radius: var(--deck-radius);
+    background: color-mix(in srgb, var(--deck-bg) 88%, transparent);
+  }
+
+  .deck > section[data-layout="quote"] {
+    justify-content: center;
+  }
+  .deck > section[data-layout="quote"] blockquote {
+    border: 0;
+    padding: 0;
+    font-size: var(--deck-size-h3);
+    font-weight: 500;
+    line-height: 1.3;
+    text-wrap: balance;
+  }
+  .deck > section[data-layout="quote"] blockquote::before {
+    content: "“";
+    display: block;
+    font-family: var(--deck-font-heading);
+    font-size: 3em;
+    line-height: 1;
+    height: 0.5em;
+    color: var(--deck-accent);
+  }
+  .deck > section[data-layout="quote"] :is(cite, figcaption) {
+    font-style: normal;
+    color: var(--deck-muted);
+  }
+}
+
+/* ---------- Steps: [data-step] elements, driven by data-state ---------- */
+/* Effects move things with translate/scale/rotate and leave transform to authors. */
+
+@layer deck.steps {
+  .deck [data-step] {
+    transition:
+      opacity var(--deck-step-duration) ease,
+      translate var(--deck-step-duration) ease,
+      scale var(--deck-step-duration) ease,
+      rotate var(--deck-step-duration) ease,
+      color var(--deck-step-duration) ease,
+      background-color var(--deck-step-duration) ease,
+      visibility var(--deck-step-duration);
+  }
+
+  /* Default effect: reveal (hidden until its step). */
+  .deck [data-step]:not([data-effect="highlight"])[data-state="future"] {
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  .deck [data-step][data-effect="rise"][data-state="future"] {
+    translate: 0 0.6em;
+  }
+
+  .deck [data-step][data-effect="dim"][data-state="past"] {
+    opacity: 0.35;
+  }
+
+  .deck [data-step][data-effect="only"]:not([data-state="current"]) {
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  .deck [data-step][data-effect="highlight"][data-state="current"] {
+    color: var(--deck-accent);
+  }
+}
+
+/* ---------- Print / PDF: one slide per page, every step revealed ---------- */
+
+@media print {
+  @layer deck.core {
+    html[data-deck-mode],
+    html[data-deck-mode] body {
+      height: auto;
+      overflow: visible;
+      background: none;
+    }
+
+    html[data-deck-blackout]::after,
+    .deck-presenter,
+    .deck::after,
+    .deck > :not(section) {
+      display: none !important;
+    }
+
+    .deck {
+      position: static !important;
+      transform: none !important;
+      width: auto !important;
+      height: auto !important;
+      padding: 0 !important;
+      overflow: visible !important;
+      display: block !important;
+    }
+
+    .deck > section,
+    html[data-deck-overview] .deck > section {
+      position: relative !important;
+      inset: auto !important;
+      width: var(--deck-width, 1920px);
+      height: var(--deck-height, 1080px);
+      transform: none;
+      margin: 0;
+      outline: none;
+      box-shadow: none;
+      print-color-adjust: exact;
+    }
+
+    .deck > section ~ section {
+      break-before: page;
+    }
+
+    .deck [data-step] {
+      opacity: 1 !important;
+      visibility: visible !important;
+      translate: none !important;
+      scale: none !important;
+      rotate: none !important;
+      filter: none !important;
+      clip-path: none !important;
+      transition: none !important;
+    }
+
+    .deck [data-step][data-effect="highlight"] {
+      color: inherit !important;
+    }
+  }
+}
+
+/* ---------- Presenter view (?presenter) ---------- */
+
+@layer deck.core {
+  .deck-presenter {
+    position: fixed;
+    inset: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+    gap: 16px;
+    padding: 16px;
+    box-sizing: border-box;
+    background: #18181b;
+    color: #e4e4e7;
+    font: 16px/1.5 ui-sans-serif, system-ui, sans-serif;
+  }
+
+  .deck-presenter [hidden] {
+    display: none !important;
+  }
+
+  .deck-presenter iframe {
+    display: block;
+    width: 100%;
+    aspect-ratio: var(--deck-aspect, 16 / 9);
+    border: 0;
+    border-radius: 8px;
+    background: #000;
+    pointer-events: none;
+  }
+
+  .deck-presenter-current {
+    align-self: center;
+  }
+  .deck-presenter-current iframe {
+    outline: 3px solid #f97316;
+  }
+
+  .deck-presenter-side {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-height: 0;
+  }
+
+  .deck-presenter-next {
+    position: relative;
+    flex: none;
+  }
+  .deck-presenter-label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #a1a1aa;
+  }
+  .deck-presenter-end {
+    display: grid;
+    place-items: center;
+    aspect-ratio: var(--deck-aspect, 16 / 9);
+    border: 2px dashed #3f3f46;
+    border-radius: 8px;
+    color: #71717a;
+  }
+
+  .deck-presenter-notes {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 16px;
+    border-radius: 8px;
+    background: #27272a;
+    line-height: 1.45;
+  }
+  .deck-presenter-notes > :first-child { margin-top: 0; }
+  .deck-presenter-empty { color: #71717a; font-style: italic; }
+
+  .deck-presenter-bar {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-variant-numeric: tabular-nums;
+  }
+  .deck-presenter-spacer { flex: 1; }
+  .deck-presenter-blackout {
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: #e4e4e7;
+    color: #18181b;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .deck-presenter-pos { font-size: 18px; }
+  .deck-presenter-bar button {
+    font: inherit;
+    color: inherit;
+    background: #27272a;
+    border: 1px solid #3f3f46;
+    border-radius: 6px;
+    padding: 4px 10px;
+    cursor: pointer;
+  }
+  .deck-presenter-bar button:hover { background: #3f3f46; }
+  .deck-presenter-timer {
+    min-width: 6ch;
+    font-size: 20px !important;
+    font-weight: 600;
+  }
+  .deck-presenter-timer.is-paused { color: #a1a1aa; }
+  .deck-presenter-clock {
+    font-size: 20px;
+    color: #a1a1aa;
+    margin-left: 8px;
+  }
+}

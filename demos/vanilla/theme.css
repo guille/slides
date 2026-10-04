@@ -1,0 +1,101 @@
+/* "Projection booth": warm charcoal, saffron accent, editorial serif headings. */
+:root {
+  --deck-bg: #15130f;
+  --deck-fg: #f2ece1;
+  --deck-muted: #9b9282;
+  --deck-accent: #e8b04a;
+  --deck-accent-fg: #1a1610;
+  --deck-surface: #24201a;
+  --deck-letterbox: #0a0907;
+  --deck-font-sans: "Inter", system-ui, sans-serif;
+  --deck-font-heading: "Fraunces", Georgia, serif;
+  --deck-font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --deck-size-h1: 120px;
+  --deck-size-h2: 76px;
+  --deck-pad: 120px;
+  --deck-radius: 20px;
+  --deck-transition-duration: 550ms;
+
+  --rule: #3a342b;
+  --ink-soft: #cfc6b6;
+}
+
+.deck h1, .deck h2 {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  font-variation-settings: "opsz" 144, "SOFT" 50;
+}
+.deck h2 em, .deck h1 em { font-style: italic; color: var(--deck-accent); }
+
+/* Small caps eyebrow above headings. */
+.deck .kicker {
+  font: 600 var(--deck-size-small) / 1 var(--deck-font-mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--deck-accent);
+}
+
+/* Title slide: a thin saffron rule and a signature line. */
+.deck [data-layout="title"] h1 { font-size: 150px; line-height: 0.98; max-width: 14ch; }
+.deck [data-layout="title"] .byline {
+  border-top: 2px solid var(--rule);
+  padding-top: 32px;
+  color: var(--deck-muted);
+  font-size: var(--deck-size-small);
+}
+
+/* Section dividers get a giant outlined chapter number. */
+.deck [data-layout="section"] .chapter {
+  font: 600 280px / 0.8 var(--deck-font-heading);
+  color: transparent;
+  -webkit-text-stroke: 3px var(--deck-accent-fg);
+  opacity: 0.35;
+}
+
+/* Cards used on several slides. */
+.deck .card {
+  background: var(--deck-surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--deck-radius);
+  padding: 44px 48px;
+}
+.deck .card h3 { margin: 0 0 16px; color: var(--deck-accent); }
+.deck .card p { margin: 0; color: var(--ink-soft); }
+
+/* Code: hand-written token classes, no highlighter needed. */
+.deck pre { font-size: 30px; line-height: 1.5; }
+.deck pre .t { color: #e8b04a; }   /* tag / keyword */
+.deck pre .a { color: #d9a3c9; }   /* attribute */
+.deck pre .s { color: #9fd3a8; }   /* string */
+.deck pre .c { color: #7d7466; font-style: italic; }
+
+/* Code lines that light up per step (highlight effect on inline spans). */
+.deck pre .line { display: inline-block; width: 100%; padding-inline: 12px; margin-inline: -12px; border-radius: 6px; }
+.deck pre .line[data-state="current"] { background: rgb(232 176 74 / 0.14); }
+
+/* --- Custom step effect: "focus" ------------------------------------
+   Arrives out of a blur, stays sharp while current, then recedes. */
+.deck [data-effect="focus"] {
+  transition: opacity var(--deck-step-duration) ease, filter var(--deck-step-duration) ease, scale var(--deck-step-duration) ease, visibility var(--deck-step-duration);
+}
+.deck [data-effect="focus"][data-state="future"] { opacity: 0; filter: blur(14px); scale: 1.06; }
+.deck [data-effect="focus"][data-state="past"] { opacity: 0.45; filter: blur(1.5px); scale: 0.98; }
+
+/* Quote mark in the heading face; the sans one reads as two slashes. */
+.deck [data-layout="quote"] blockquote {
+  font: italic 500 88px / 1.15 var(--deck-font-heading);
+  max-width: 22ch;
+}
+.deck [data-layout="quote"] blockquote::before { font-style: normal; }
+.deck [data-layout="quote"] cite { font-family: var(--deck-font-mono); letter-spacing: 0.08em; text-transform: uppercase; font-size: var(--deck-size-small); }
+
+/* --- Custom transition: "iris" -------------------------------------- */
+@keyframes iris-in { from { clip-path: circle(0% at 50% 45%); } to { clip-path: circle(75% at 50% 45%); } }
+@keyframes iris-out { from { clip-path: circle(75% at 50% 45%); } to { clip-path: circle(0% at 50% 45%); } }
+html[data-deck-transition="iris"]::view-transition-old(deck) { animation: none; }
+html[data-deck-transition="iris"]::view-transition-new(deck) { animation: 700ms cubic-bezier(.6,0,.2,1) both iris-in; }
+html[data-deck-transition="iris"][data-deck-direction="backward"]::view-transition-old(deck) {
+  animation: 700ms cubic-bezier(.6,0,.2,1) both iris-out;
+  z-index: 1;
+}
+html[data-deck-transition="iris"][data-deck-direction="backward"]::view-transition-new(deck) { animation: none; }

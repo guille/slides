@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Slides are just web pages</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,400..700,0..100;1,9..144,400..700,0..100&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+  <link rel="stylesheet" href="./lib/deck.css">
+  <link rel="stylesheet" href="./theme.css">
+  <link rel="stylesheet" href="./slides.css">
+</head>
+<body>
+  <main class="deck" data-transition="fade" data-progress data-slide-numbers>
+
+    <!-- 1 · title -->
+    <section data-layout="title" id="intro" data-no-number>
+      <p class="kicker">A talk in fifteen slides</p>
+      <h1>Slides are just <em>web pages</em></h1>
+      <p class="byline">Press <kbd>P</kbd> for the presenter view · <kbd>O</kbd> for the overview · arrows to move</p>
+      <aside class="notes">
+        <p>Welcome. The claim of this talk: a slide deck is a web page with a
+        fixed-size stage and a cursor. Everything else is CSS.</p>
+        <p>This very deck is the demo: every feature I mention is on screen.</p>
+      </aside>
+    </section>
+
+    <!-- 2 · center: big number -->
+    <section data-layout="center" id="stage">
+      <p class="kicker">One canvas</p>
+      <p class="huge">1920 <span class="accent">×</span> 1080</p>
+      <p class="muted lede" data-step data-effect="rise">Every slide is authored at exactly these pixels. Then the whole stage scales to fit.</p>
+      <aside class="notes">Content never reflows. If it fits on my laptop, it fits on the venue projector. That one rule removes most "it looked fine at home" surprises.</aside>
+    </section>
+
+    <!-- 3 · section -->
+    <section data-layout="section" id="why" data-transition="slide">
+      <span class="chapter">01</span>
+      <h2>Why the web?</h2>
+      <aside class="notes">Part one: why build slides on the web platform at all.</aside>
+    </section>
+
+    <!-- 4 · default layout, default reveal -->
+    <section id="free">
+      <h2>What you get for free</h2>
+      <ul class="big-list">
+        <li data-step>Plain text in <strong>git</strong>: diffs, reviews, blame</li>
+        <li data-step>Real links, real <strong>selectable</strong> text</li>
+        <li data-step>Any JS library, any <strong>live demo</strong></li>
+        <li data-step>Opens <strong>anywhere</strong> with a browser</li>
+      </ul>
+      <aside class="notes">Default step effect: each item fades in and stays. No data-effect attribute at all.</aside>
+    </section>
+
+    <!-- 5 · split + rise -->
+    <section data-layout="split" id="versus">
+      <h2>Slide software <span class="muted">vs</span> <em>a web page</em></h2>
+      <div class="card versus-old">
+        <h3>The usual way</h3>
+        <ul>
+          <li>Binary file, mailed around</li>
+          <li>Fonts missing at the venue</li>
+          <li>Demos are screenshots</li>
+          <li>Theme lives in a dialog box</li>
+        </ul>
+      </div>
+      <div class="card versus-new">
+        <h3>This way</h3>
+        <ul>
+          <li data-step data-effect="rise">A folder of HTML and CSS</li>
+          <li data-step data-effect="rise">Fonts ship with the page</li>
+          <li data-step data-effect="rise">Demos are the real thing</li>
+          <li data-step data-effect="rise">Theme is a stylesheet</li>
+        </ul>
+      </div>
+      <aside class="notes">Split layout: heading spans both columns, then exactly two children. The right column uses the rise effect.</aside>
+    </section>
+
+    <!-- 6 · quote -->
+    <section data-layout="quote" id="kay">
+      <blockquote>Simple things should be simple, complex things should be possible.</blockquote>
+      <cite>Alan Kay</cite>
+      <aside class="notes">This is the design goal. A slide with a heading and bullets needs nothing. A slide with a live canvas needs a few lines of JS.</aside>
+    </section>
+
+    <!-- 7 · section -->
+    <section data-layout="section" id="how">
+      <span class="chapter">02</span>
+      <h2>How it works</h2>
+      <aside class="notes">Part two: the stage, steps, theming, presenter view and PDF.</aside>
+    </section>
+
+    <!-- 8 · split + interactive widget + highlight -->
+    <section data-layout="split" id="scaling">
+      <h2>The stage scales, the content doesn't</h2>
+      <figure class="widget" data-no-nav>
+        <canvas id="stage-canvas" width="1520" height="1040" aria-label="A stage scaling inside differently sized windows"></canvas>
+        <figcaption class="readout"><span data-size>1920 × 1080</span><span class="accent" data-scale>× 1.000</span></figcaption>
+      </figure>
+      <div class="presets">
+        <p class="muted small">Window size</p>
+        <ol>
+          <li data-step data-effect="highlight">Laptop <span>1440 × 900</span></li>
+          <li data-step data-effect="highlight">Projector <span>1024 × 768</span></li>
+          <li data-step data-effect="highlight">Phone <span>390 × 844</span></li>
+          <li data-step data-effect="highlight">Ultrawide <span>3440 × 1440</span></li>
+        </ol>
+        <p class="small muted">One <code>transform: scale()</code>. Letterbox the rest.</p>
+      </div>
+      <aside class="notes">
+        <p>Live canvas wired with <code>onSlide()</code>: it starts animating on enter, stops on leave, and each step snaps the simulated window to a preset.</p>
+        <p>The list uses the highlight effect: always visible, accent while current.</p>
+      </aside>
+    </section>
+
+    <!-- 9 · dim -->
+    <section id="steps">
+      <h2>Steps tell the story <span class="muted">one beat at a time</span></h2>
+      <ol class="beats">
+        <li data-step data-effect="dim"><strong>Mark it.</strong> Add <code>data-step</code> to any element.</li>
+        <li data-step data-effect="dim"><strong>Style it.</strong> Pick an effect, or write your own CSS.</li>
+        <li data-step data-effect="dim"><strong>Link it.</strong> <code>#9.2</code> is slide nine, step two.</li>
+      </ol>
+      <aside class="notes">The dim effect: the current point is bright, earlier ones fade back so the audience knows where we are.</aside>
+    </section>
+
+    <!-- 10 · grouped explicit numbers, only, custom effect -->
+    <section id="groups">
+      <h2>Group, reorder, or <em>invent</em> effects</h2>
+      <div class="columns triad">
+        <div class="card" data-step="1" data-effect="rise"><span class="num">1</span><p>Shows first, on its own.</p></div>
+        <div class="card" data-step="3" data-effect="focus"><span class="num">3</span><p>A custom <code>focus</code> effect in plain CSS.</p></div>
+        <div class="card" data-step="2" data-effect="rise"><span class="num">2</span><p>Out of order, by number.</p></div>
+      </div>
+      <div class="captions">
+        <p data-step="1" data-effect="only">Explicit <code>data-step="1"</code></p>
+        <p data-step="2" data-effect="only">Two elements share <code>data-step="2"</code>: this caption and the right card</p>
+        <p data-step="3" data-effect="only">Blurs in, then recedes when it's no longer current</p>
+      </div>
+      <aside class="notes">
+        <p>Explicit numbers group and reorder. The captions use <code>only</code>: each is visible during its own step.</p>
+        <p>The middle card uses a custom effect named "focus", defined in theme.css against <code>[data-state]</code>.</p>
+      </aside>
+    </section>
+
+    <!-- 11 · code -->
+    <section id="code">
+      <h2>A whole deck is one file</h2>
+<pre><code><span class="line" data-step data-effect="highlight"><span class="t">&lt;main</span> <span class="a">class</span>=<span class="s">"deck"</span> <span class="a">data-transition</span>=<span class="s">"fade"</span> <span class="a">data-progress</span><span class="t">&gt;</span></span>
+<span class="line" data-step data-effect="highlight">  <span class="t">&lt;section</span> <span class="a">data-layout</span>=<span class="s">"title"</span><span class="t">&gt;</span>
+    <span class="t">&lt;h1&gt;</span>Slides are just web pages<span class="t">&lt;/h1&gt;</span>
+    <span class="t">&lt;aside</span> <span class="a">class</span>=<span class="s">"notes"</span><span class="t">&gt;</span>Only I can see this.<span class="t">&lt;/aside&gt;</span>
+  <span class="t">&lt;/section&gt;</span></span>
+<span class="line" data-step data-effect="highlight">  <span class="t">&lt;section&gt;</span><span class="t">&lt;li</span> <span class="a">data-step</span> <span class="a">data-effect</span>=<span class="s">"rise"</span><span class="t">&gt;</span>…<span class="t">&lt;/li&gt;&lt;/section&gt;</span></span>
+<span class="t">&lt;/main&gt;</span>
+<span class="line" data-step data-effect="highlight"><span class="t">&lt;script</span> <span class="a">type</span>=<span class="s">"module"</span><span class="t">&gt;</span>
+  <span class="t">import</span> { deck } <span class="t">from</span> <span class="s">"./lib/deck.js"</span>;
+  deck(document.querySelector(<span class="s">".deck"</span>));
+<span class="t">&lt;/script&gt;</span></span></code></pre>
+      <aside class="notes">Walk through the four highlighted regions: the deck root with options, a slide with notes, a step, and the one-line boot.</aside>
+    </section>
+
+    <!-- 12 · theming -->
+    <section data-layout="split" id="theme">
+      <h2>Theming is a stylesheet</h2>
+<pre><code><span class="t">:root</span> {
+  <span class="a">--deck-bg</span>: <span class="s">#15130f</span>;
+  <span class="a">--deck-fg</span>: <span class="s">#f2ece1</span>;
+  <span class="a">--deck-accent</span>: <span class="s">#e8b04a</span>;
+  <span class="a">--deck-font-heading</span>:
+    <span class="s">"Fraunces"</span>, serif;
+  <span class="a">--deck-pad</span>: <span class="s">120px</span>;
+}</code></pre>
+      <div class="swatches">
+        <div class="swatch" style="--c: var(--deck-bg)"><i></i><span>bg</span></div>
+        <div class="swatch" style="--c: var(--deck-fg)"><i></i><span>fg</span></div>
+        <div class="swatch" style="--c: var(--deck-accent)"><i></i><span>accent</span></div>
+        <div class="swatch" style="--c: var(--deck-surface)"><i></i><span>surface</span></div>
+        <div class="swatch" style="--c: var(--deck-muted)"><i></i><span>muted</span></div>
+        <p class="small muted swatch-note">Plain CSS custom properties, plus anything else you'd write for a web page: this deck adds a custom step effect and a custom transition.</p>
+      </div>
+      <aside class="notes">Every visual token is a custom property. This deck's theme is about forty lines; open theme.css.</aside>
+    </section>
+
+    <!-- 13 · bleed, custom transition -->
+    <section data-layout="bleed" id="presenter" data-transition="iris">
+      <img src="./assets/hall.svg" alt="An audience in front of a projected slide">
+      <div class="caption">
+        <p class="kicker">Presenter view</p>
+        <p>Notes, next step, timer and clock in a second window, kept in sync over <code>BroadcastChannel</code>.</p>
+      </div>
+      <aside class="notes">Full-bleed layout with a caption box. This slide also uses a custom "iris" transition defined in theme.css. Press P now to show the presenter window.</aside>
+    </section>
+
+    <!-- 14 · PDF -->
+    <section id="pdf">
+      <h2>PDF is just print CSS</h2>
+      <p class="lede-2">Every slide becomes a page with every step revealed. No exporter, no screenshots.</p>
+<pre><code><span class="c"># or use the browser's print dialog</span>
+mise run pdf http://localhost:8000/demos/vanilla/ talk.pdf</code></pre>
+      <div class="columns facts">
+        <p data-step data-effect="rise"><strong>@page</strong> matches the stage size</p>
+        <p data-step data-effect="rise"><strong>Text stays text</strong> searchable and selectable</p>
+        <p data-step data-effect="rise"><strong>Links</strong> still clickable</p>
+      </div>
+      <aside class="notes">Show the PDF afterwards: one page per slide.</aside>
+    </section>
+
+    <!-- 15 · end -->
+    <section data-layout="center" id="end" data-no-number>
+      <h2>View source.</h2>
+      <p class="muted">That's the whole trick. This deck is a single <code>index.html</code>.</p>
+      <aside class="notes">Thanks. Questions?</aside>
+    </section>
+
+  </main>
+  <script type="module">
+    import { deck } from "./lib/deck.js";
+    import { mountStageWidget } from "./stage-widget.js";
+
+    deck(document.querySelector(".deck"));
+    mountStageWidget(document.getElementById("stage-canvas"), document.querySelector("#scaling .readout"));
+  </script>
+</body>
+</html>

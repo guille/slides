@@ -1,0 +1,72 @@
+:root {
+  --deck-bg: #15130f;
+  --deck-fg: #ece4d4;
+  --deck-muted: #9a8f7c;
+  --deck-accent: #d4a849;
+  --deck-accent-fg: #15130f;
+  --deck-surface: #26211a;
+  --deck-letterbox: #070605;
+  --deck-font-sans: "EB Garamond Variable", Garamond, Georgia, serif;
+  --deck-font-heading: "EB Garamond Variable", Garamond, Georgia, serif;
+  --deck-font-mono: "JetBrains Mono Variable", ui-monospace, monospace;
+  --deck-size-body: 44px;
+  --deck-size-small: 32px;
+  --deck-radius: 12px;
+}
+
+.deck h1,
+.deck h2 {
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.deck > section[data-layout="title"] h1 {
+  font-size: 160px;
+  line-height: 1;
+}
+
+.deck > section[data-layout="section"] {
+  background: radial-gradient(circle at 75% 20%, #e6c06a, var(--deck-accent) 35%, #7a4e1d);
+}
+
+.deck .kicker {
+  font: 600 var(--deck-size-small) var(--deck-font-mono);
+  font-size: 26px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--deck-accent);
+}
+
+.deck em,
+.deck cite,
+.deck [lang="la"],
+.deck [lang="el"],
+.deck [lang="fr"] {
+  font-style: italic;
+}
+
+.deck > section[data-layout="quote"] blockquote {
+  font-size: 84px;
+  font-weight: 500;
+  font-style: italic;
+  line-height: 1.15;
+}
+
+.deck > section:not([data-layout]) > :is(ul, ol) {
+  font-size: 52px;
+  gap: 0.6em;
+}
+
+/* Custom "zoom" transition (View Transitions) */
+html[data-deck-transition="zoom"]::view-transition-old(deck) {
+  animation: 500ms ease both deck-zoom-out;
+}
+html[data-deck-transition="zoom"]::view-transition-new(deck) {
+  animation: 500ms ease both deck-zoom-in;
+}
+@keyframes deck-zoom-out {
+  to { opacity: 0; transform: scale(1.15); }
+}
+@keyframes deck-zoom-in {
+  from { opacity: 0; transform: scale(0.85); }
+}

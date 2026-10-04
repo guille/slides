@@ -1,0 +1,10 @@
+{{define "receipt"}}
+<p class="total">
+  <b>{{.Requests}}</b> requests · <b>{{bytes .Bytes}}</b> of HTML · median <b>{{dur .Median}}</b> on the server
+</p>
+<table>
+  {{range $i, $e := .Endpoints}}{{if lt $i 5}}
+  <tr><td><code>{{.Route}}</code></td><td>{{.Count}}×</td><td>{{bytes .Bytes}}</td><td>{{dur .Median}}</td></tr>
+  {{end}}{{end}}
+</table>
+{{end}}

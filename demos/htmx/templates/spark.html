@@ -1,0 +1,9 @@
+{{define "spark"}}
+<svg viewBox="0 0 {{.W}} {{.H}}"
+     preserveAspectRatio="none">
+  {{if not .Empty}}
+  <path class="area" d="{{.Area}}"/>
+  <path class="line" d="{{.Line}}"/>
+  {{end}}
+</svg>
+{{end}}

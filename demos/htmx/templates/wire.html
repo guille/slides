@@ -1,0 +1,6 @@
+{{define "wire"}}
+<output id="wire" class="wire" hx-swap-oob="true">
+  <i></i> {{.Last.Method}} {{.Last.Path}} · {{.Last.Status}} · {{bytes .Last.Bytes}} · {{dur .Last.Took}}
+  <span>#{{.Total}}</span>
+</output>
+{{end}}

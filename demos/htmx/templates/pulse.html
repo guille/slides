@@ -1,0 +1,15 @@
+{{define "pulse"}}
+{{range .Tiles}}
+<figure class="tile">
+  <figcaption>{{.Label}} <code>{{.Metric}}</code></figcaption>
+  <p class="value">{{.Spark.Value}}</p>
+  {{template "spark" .Spark}}
+  <p class="scale">60 s · peak {{.Spark.Max}}</p>
+</figure>
+{{end}}
+{{end}}
+
+{{define "pulse-action"}}
+{{.Status}}
+<div id="pulse" hx-swap-oob="innerHTML">{{template "pulse" .}}</div>
+{{end}}

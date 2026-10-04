@@ -1,0 +1,125 @@
+---
+import Slide from "./Slide.astro";
+import Globe from "./Globe.astro";
+import { stats, type Planet } from "../data/planets";
+import type { bodies } from "../scripts/bodies";
+
+interface Props {
+  planet: Planet;
+  group: string;
+  /** Canvas size and the disk's centre on the stage; the globe may hang off the edge. */
+  globe: { size: number; x: number; y: number; radius?: number };
+  /** Put the globe on the left and the copy on the right. */
+  flip?: boolean;
+  phase?: number;
+}
+const { planet, group, globe, flip = false, phase } = Astro.props;
+const left = globe.x - globe.size / 2;
+const top = globe.y - globe.size / 2;
+---
+
+<Slide id={planet.id} class:list={["planet", { flip }]} style={`--planet:${planet.color};--gx:${globe.x}px;--gy:${globe.y}px`}>
+  <div class="backdrop">
+    <div class="halo"></div>
+    <Globe
+      body={planet.id as keyof typeof bodies}
+      width={globe.size}
+      radius={globe.radius}
+      light={flip ? "right" : "left"}
+      phase={phase}
+      style={`position:absolute;left:${left}px;top:${top}px`}
+    />
+  </div>
+  <div class="copy">
+    <p class="kicker"><span>{String(planet.order).padStart(2, "0")}</span> · {group}</p>
+    <h2>{planet.name}</h2>
+    <p class="tagline">{planet.tagline}</p>
+    <p class="blurb">{planet.blurb}</p>
+    <dl class="stats">
+      {
+        stats(planet).map((s, i) => (
+          <div data-step="1" data-effect="rise" style={`--i:${i}`}>
+            <dt>{s.label}</dt>
+            <dd>
+              {s.value}
+              {s.unit && <span class="unit">{s.unit}</span>}
+            </dd>
+          </div>
+        ))
+      }
+    </dl>
+  </div>
+  <slot name="notes" slot="notes" />
+</Slide>
+
+<style>
+  .planet {
+    justify-content: center;
+  }
+  .halo {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle 900px at var(--gx) var(--gy), color-mix(in oklab, var(--planet) 22%, transparent), transparent 70%);
+  }
+  .copy {
+    position: relative;
+    width: 760px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+  .flip .copy {
+    margin-left: auto;
+  }
+  .kicker {
+    color: var(--planet);
+  }
+  .kicker span {
+    color: var(--deck-fg);
+  }
+  h2 {
+    font-size: 210px;
+    line-height: 0.85;
+    margin-left: -8px;
+    text-shadow: 0 0 80px color-mix(in oklab, var(--planet) 45%, transparent);
+  }
+  .tagline {
+    font: italic 400 64px/1 var(--deck-font-heading);
+    color: var(--planet);
+  }
+  .blurb {
+    font-size: 32px;
+    line-height: 1.45;
+    color: color-mix(in oklab, var(--deck-fg) 82%, var(--deck-muted));
+  }
+  .stats {
+    margin: 16px 0 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px 32px;
+    padding-top: 32px;
+    border-top: 1px solid color-mix(in oklab, var(--planet) 40%, transparent);
+  }
+  .stats > div {
+    transition-delay: calc(var(--i) * 70ms);
+  }
+  dt {
+    font: 500 18px/1 var(--deck-font-mono);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--deck-muted);
+    margin-bottom: 10px;
+  }
+  dd {
+    margin: 0;
+    font: 500 44px/1 var(--deck-font-mono);
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+  }
+  .unit {
+    font-size: 22px;
+    margin-left: 6px;
+    color: var(--deck-muted);
+    letter-spacing: 0;
+  }
+</style>

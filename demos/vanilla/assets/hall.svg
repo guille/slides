@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <defs>
+    <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1b1712"/>
+      <stop offset="1" stop-color="#0b0a08"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.36" r="0.55">
+      <stop offset="0" stop-color="#e8b04a" stop-opacity="0.34"/>
+      <stop offset="0.6" stop-color="#e8b04a" stop-opacity="0.06"/>
+      <stop offset="1" stop-color="#e8b04a" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="screen" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f6efe2"/>
+      <stop offset="1" stop-color="#e9dcc3"/>
+    </linearGradient>
+    <linearGradient id="beam" x1="0.5" y1="1" x2="0.5" y2="0">
+      <stop offset="0" stop-color="#f6efe2" stop-opacity="0"/>
+      <stop offset="1" stop-color="#f6efe2" stop-opacity="0.10"/>
+    </linearGradient>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#wall)"/>
+  <rect width="1920" height="1080" fill="url(#glow)"/>
+  <polygon points="960,1080 560,150 1360,150" fill="url(#beam)"/>
+  <rect x="560" y="110" width="800" height="450" rx="6" fill="url(#screen)"/>
+  <g fill="#14120f">
+    <rect x="620" y="170" width="380" height="34" rx="4"/>
+    <rect x="620" y="238" width="520" height="14" rx="7" opacity="0.55"/>
+    <rect x="620" y="270" width="470" height="14" rx="7" opacity="0.55"/>
+    <rect x="620" y="302" width="500" height="14" rx="7" opacity="0.55"/>
+  </g>
+  <rect x="620" y="360" width="300" height="150" rx="10" fill="#e8b04a"/>
+  <rect x="950" y="360" width="350" height="150" rx="10" fill="#14120f" opacity="0.12"/>
+  <rect x="560" y="560" width="800" height="5" fill="#e8b04a"/>
+  <g fill="#0d0b09">
+    <circle cx="230" cy="760" r="40"/><rect x="175" y="790" width="110" height="120" rx="48"/>
+    <circle cx="445" cy="770" r="38"/><rect x="392" y="798" width="106" height="120" rx="46"/>
+    <circle cx="675" cy="755" r="41"/><rect x="619" y="786" width="112" height="120" rx="50"/>
+    <circle cx="905" cy="768" r="38"/><rect x="852" y="796" width="106" height="120" rx="46"/>
+    <circle cx="1135" cy="758" r="40"/><rect x="1080" y="788" width="110" height="120" rx="48"/>
+    <circle cx="1365" cy="770" r="38"/><rect x="1312" y="798" width="106" height="120" rx="46"/>
+    <circle cx="1595" cy="756" r="41"/><rect x="1539" y="786" width="112" height="120" rx="50"/>
+    <circle cx="1820" cy="766" r="39"/><rect x="1766" y="796" width="108" height="120" rx="47"/>
+  </g>
+  <g fill="#050404">
+    <g id="row1">
+      <circle cx="120" cy="860" r="58"/><rect x="40" y="900" width="160" height="200" rx="70"/>
+      <circle cx="330" cy="875" r="54"/><rect x="255" y="912" width="150" height="200" rx="66"/>
+      <circle cx="560" cy="850" r="60"/><rect x="478" y="892" width="164" height="200" rx="72"/>
+      <circle cx="790" cy="870" r="55"/><rect x="714" y="908" width="152" height="200" rx="68"/>
+      <circle cx="1020" cy="858" r="58"/><rect x="940" y="898" width="160" height="200" rx="70"/>
+      <circle cx="1250" cy="872" r="54"/><rect x="1175" y="910" width="150" height="200" rx="66"/>
+      <circle cx="1480" cy="852" r="60"/><rect x="1398" y="894" width="164" height="200" rx="72"/>
+      <circle cx="1710" cy="868" r="56"/><rect x="1632" y="906" width="156" height="200" rx="68"/>
+      <circle cx="1900" cy="860" r="58"/><rect x="1820" y="900" width="160" height="200" rx="70"/>
+    </g>
+  </g>
+</svg>

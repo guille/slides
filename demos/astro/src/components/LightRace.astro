@@ -1,0 +1,234 @@
+---
+import { planets, LIGHT_SECONDS_PER_AU } from "../data/planets";
+
+const X0 = 150;
+const X1 = 1770;
+const Y = 640;
+const first = planets[0].au * LIGHT_SECONDS_PER_AU;
+const total = planets.at(-1)!.au * LIGHT_SECONDS_PER_AU;
+// Track position of the first planet. Linear time up to it, logarithmic after.
+const P_FIRST = 0.1;
+const position = (t: number) =>
+  t <= first ? (P_FIRST * t) / first : P_FIRST + ((1 - P_FIRST) * Math.log(t / first)) / Math.log(total / first);
+
+function duration(seconds: number) {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = Math.round(seconds % 60);
+  return h ? `${h} h ${m} min` : `${m} min ${s} s`;
+}
+
+const stops = planets.map((p) => {
+  const seconds = p.au * LIGHT_SECONDS_PER_AU;
+  return { ...p, seconds, label: duration(seconds), x: X0 + (X1 - X0) * position(seconds) };
+});
+---
+
+<light-race data-first={first} data-total={total} data-p-first={P_FIRST} style={`--x0:${X0}px;--x1:${X1}px;--y:${Y}px`}>
+  <div class="track"><div class="beam"></div></div>
+  <div class="sun"></div>
+  <div class="photon"></div>
+  {
+    stops.map((s) => (
+      <div class="stop" data-seconds={s.seconds} style={`left:${s.x}px;--c:${s.color}`}>
+        <span class="dot" />
+        <span class="name">{s.name}</span>
+        <span class="time">{s.label}</span>
+      </div>
+    ))
+  }
+  <p class="clock"><span data-clock>4:10:00</span><small>elapsed since the light left the Sun</small></p>
+  <button class="replay" data-no-nav aria-label="Replay">↻ Replay</button>
+</light-race>
+
+<script>
+  import { onSlide } from "@slides/deck";
+
+  const DURATION = 9000;
+
+  const clock = (s: number) => {
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    const sec = Math.floor(s % 60);
+    return `${h}:${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
+  };
+
+  class LightRace extends HTMLElement {
+    raf = 0;
+    stop?: () => void;
+
+    connectedCallback() {
+      this.render(1);
+      this.querySelector(".replay")!.addEventListener("click", () => this.play());
+      this.stop = onSlide(this, {
+        enter: ({ mode }) => (mode === "main" ? this.play() : this.render(1)),
+        leave: () => {
+          cancelAnimationFrame(this.raf);
+          this.render(1);
+        },
+        reveal: ({ all }) => {
+          if (!all) return;
+          cancelAnimationFrame(this.raf);
+          this.render(1);
+        },
+      });
+    }
+
+    disconnectedCallback() {
+      this.stop?.();
+      cancelAnimationFrame(this.raf);
+    }
+
+    play() {
+      cancelAnimationFrame(this.raf);
+      if (matchMedia("(prefers-reduced-motion: reduce)").matches) return this.render(1);
+      const start = performance.now();
+      const loop = (now: number) => {
+        const p = Math.min((now - start) / DURATION, 1);
+        this.render(p);
+        if (p < 1) this.raf = requestAnimationFrame(loop);
+      };
+      this.raf = requestAnimationFrame(loop);
+    }
+
+    // p is the photon's position along the track. It moves at constant speed on
+    // screen; on the logarithmic stretch the clock runs exponentially faster.
+    render(p: number) {
+      const first = Number(this.dataset.first);
+      const total = Number(this.dataset.total);
+      const pFirst = Number(this.dataset.pFirst);
+      const t = p <= pFirst ? (first * p) / pFirst : first * Math.pow(total / first, (p - pFirst) / (1 - pFirst));
+      this.style.setProperty("--p", String(p));
+      this.toggleAttribute("data-done", p >= 1);
+      this.querySelector("[data-clock]")!.textContent = clock(t);
+      for (const stop of this.querySelectorAll<HTMLElement>(".stop")) {
+        stop.toggleAttribute("data-lit", Number(stop.dataset.seconds) <= t + 0.5);
+      }
+    }
+  }
+
+  customElements.define("light-race", LightRace);
+</script>
+
+<style>
+  light-race {
+    position: absolute;
+    inset: 0;
+    --p: 1;
+  }
+  .track {
+    position: absolute;
+    left: var(--x0);
+    width: calc(var(--x1) - var(--x0));
+    top: var(--y);
+    height: 2px;
+    background: rgb(160 175 235 / 0.16);
+  }
+  .beam {
+    height: 100%;
+    width: calc(var(--p) * 100%);
+    background: linear-gradient(90deg, rgb(255 210 120 / 0.9), rgb(255 240 210 / 0.9));
+    box-shadow: 0 0 14px rgb(255 200 110 / 0.8);
+  }
+  .sun {
+    position: absolute;
+    left: calc(var(--x0) - 210px);
+    top: calc(var(--y) - 210px);
+    width: 420px;
+    height: 420px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #fff6dc 0 9%, #ffc560 14%, rgb(255 138 61 / 0.35) 32%, transparent 68%);
+  }
+  .photon {
+    position: absolute;
+    left: calc(var(--x0) + (var(--x1) - var(--x0)) * var(--p));
+    top: var(--y);
+    width: 220px;
+    height: 10px;
+    translate: -100% -50%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, transparent, rgb(255 230 180 / 0.6) 70%, #fff);
+    box-shadow: 0 0 30px 6px rgb(255 220 150 / 0.55);
+  }
+  light-race[data-done] .photon {
+    opacity: 0;
+    transition: opacity 600ms;
+  }
+  .stop {
+    position: absolute;
+    top: var(--y);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    translate: -50% -14px;
+    white-space: nowrap;
+  }
+  .dot {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, color-mix(in oklab, var(--c), white 45%), var(--c) 45%, #05060c 100%);
+    opacity: 0.35;
+    transition: opacity 400ms, box-shadow 400ms, scale 400ms;
+  }
+  .name {
+    margin-top: 10px;
+    font: italic 400 38px/1 var(--deck-font-heading);
+    color: var(--c);
+    opacity: 0.35;
+    transition: opacity 400ms;
+  }
+  .time {
+    font: 500 19px/1 var(--deck-font-mono);
+    color: var(--deck-fg);
+    opacity: 0;
+    transition: opacity 400ms;
+  }
+  .stop[data-lit] :is(.dot, .name, .time) {
+    opacity: 1;
+  }
+  .stop[data-lit] .dot {
+    box-shadow: 0 0 28px 4px color-mix(in oklab, var(--c) 70%, transparent);
+    scale: 1.15;
+  }
+  .clock {
+    position: absolute;
+    right: var(--deck-pad);
+    top: 150px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 14px;
+  }
+  .clock span {
+    font: 500 120px/1 var(--deck-font-mono);
+    letter-spacing: -0.05em;
+    font-variant-numeric: tabular-nums;
+    background: var(--sun);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .clock small {
+    font: 500 18px/1 var(--deck-font-mono);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--deck-muted);
+  }
+  .replay {
+    position: absolute;
+    right: var(--deck-pad);
+    bottom: 90px;
+    font: 500 20px/1 var(--deck-font-mono);
+    color: var(--deck-muted);
+    background: rgb(255 255 255 / 0.04);
+    border: 1px solid rgb(255 255 255 / 0.14);
+    border-radius: 999px;
+    padding: 12px 20px;
+    cursor: pointer;
+  }
+  .replay:hover {
+    color: var(--deck-fg);
+  }
+</style>

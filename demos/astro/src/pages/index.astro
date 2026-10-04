@@ -1,0 +1,269 @@
+---
+import Deck from "../layouts/Deck.astro";
+import Slide from "../components/Slide.astro";
+import Globe from "../components/Globe.astro";
+import PlanetSlide from "../components/PlanetSlide.astro";
+import Chapter from "../components/Chapter.astro";
+import Lineup from "../components/Lineup.astro";
+import Orrery from "../components/Orrery.astro";
+import LightRace from "../components/LightRace.astro";
+import { planets } from "../data/planets";
+
+const by = Object.fromEntries(planets.map((p) => [p.id, p]));
+const right = { size: 1100, x: 1400, y: 540 };
+const left = { size: 1100, x: 520, y: 540 };
+---
+
+<Deck title="The Solar System">
+  <Slide id="title" layout="title" class="title">
+    <div class="backdrop">
+      <Globe body="sun" width={1920} height={1080} radius={430} cx={1500} cy={560} style="position:absolute;left:0;top:0" />
+    </div>
+    <p class="kicker">A grand tour · One star · Eight worlds</p>
+    <h1>The Solar<br /><em class="sun-text">System</em></h1>
+    <p class="lede">4.6 billion years of rocks, ice and gas falling around a very ordinary star.</p>
+    <Fragment slot="notes">
+      <p>Every body in this deck is drawn live by one fragment shader: no textures, no images. The starfield is generated at build time by an Astro endpoint.</p>
+      <p>Press <strong>O</strong> for the overview, <strong>P</strong> for presenter view.</p>
+    </Fragment>
+  </Slide>
+
+  <Slide id="mass" layout="center" class="mass">
+    <div class="backdrop"><div class="corona"></div></div>
+    <p class="kicker">Gravitational budget</p>
+    <p class="big sun-text">99.86%</p>
+    <p class="lede">of all the mass in the Solar System is the Sun.</p>
+    <p class="muted rest" data-step data-effect="rise">Jupiter is most of the rest. Earth is a rounding error.</p>
+    <Fragment slot="notes">
+      <p>The other 0.14% is mostly Jupiter (about 0.1%). All the rocky planets together: about 0.0006%.</p>
+    </Fragment>
+  </Slide>
+
+  <Slide id="scale" class="scale">
+    <Lineup />
+    <header>
+      <p class="kicker">Everything, to scale</p>
+      <h2>Mind the <em>gap</em></h2>
+      <p class="lede">Line up 109 Earths and you have crossed the face of the Sun once.</p>
+    </header>
+    <Fragment slot="notes">
+      <p>Diameters to scale; distances are not. At this scale Neptune would sit 60 km to the right.</p>
+      <p>Step 1 names the rocky planets, step 2 the giants.</p>
+    </Fragment>
+  </Slide>
+
+  <Slide id="orrery" class="orrery" steps={1}>
+    <Orrery />
+    <header>
+      <p class="kicker">Live, from above</p>
+      <h2>Where everyone <em>is</em></h2>
+      <p class="lede">Starting today and running fast. Next zooms out to Neptune.</p>
+    </header>
+    <Fragment slot="notes">
+      <p>Positions come from each planet's mean longitude at J2000 plus its mean motion: circular orbits, but the right planets in the right places today.</p>
+      <p>Distances use a square-root scale. The asteroid belt is 1,800 particles obeying Kepler's third law. The speed buttons don't advance the deck.</p>
+    </Fragment>
+  </Slide>
+
+  <Chapter id="inner" part="Part I" highlight={["mercury", "venus", "earth", "mars"]} reach={1.65} glow="#ff7a2f" row={320}>
+    <Fragment slot="title">The <em>inner</em><br />worlds</Fragment>
+    Small, dense and rocky: forged where the young Sun burned off everything light.
+  </Chapter>
+
+  <PlanetSlide planet={by.mercury} group="Inner worlds" globe={right}>
+    <Fragment slot="notes"><p>Bump-mapped craters from three octaves of Worley cells. The bump fades near the limb, where screen-space derivatives get blocky.</p></Fragment>
+  </PlanetSlide>
+  <PlanetSlide planet={by.venus} group="Inner worlds" globe={left} flip>
+    <Fragment slot="notes"><p>We only ever see the cloud tops. They super-rotate: the atmosphere laps the planet every four days.</p></Fragment>
+  </PlanetSlide>
+  <PlanetSlide planet={by.earth} group="Inner worlds" globe={right} phase={30}>
+    <Fragment slot="notes"><p>Continents, ice caps, ocean glint, drifting clouds and city lights on the night side. All procedural, so not <em>our</em> continents.</p></Fragment>
+  </PlanetSlide>
+  <PlanetSlide planet={by.mars} group="Inner worlds" globe={left} flip>
+    <Fragment slot="notes"><p>Two moons, Phobos and Deimos, probably captured asteroids.</p></Fragment>
+  </PlanetSlide>
+
+  <Chapter id="giants" part="Part II" highlight={["jupiter", "saturn", "uranus", "neptune"]} reach={31} glow="#4f6bff">
+    <Fragment slot="title">The <em>giants</em></Fragment>
+    Past the frost line there was ice to build with, and the planets grew enormous.
+  </Chapter>
+
+  <PlanetSlide planet={by.jupiter} group="Giants" globe={right}>
+    <Fragment slot="notes"><p>The Great Red Spot drifts into view while the slide is up.</p></Fragment>
+  </PlanetSlide>
+  <PlanetSlide planet={by.saturn} group="Giants" globe={{ size: 1500, x: 500, y: 540 }} flip>
+    <Fragment slot="notes"><p>The rings cast the planet's shadow and the planet casts the rings' shadow: two ray–plane tests in the shader. Cassini division and Encke gap included.</p></Fragment>
+  </PlanetSlide>
+  <PlanetSlide planet={by.uranus} group="Giants" globe={right}>
+    <Fragment slot="notes"><p>Its faint rings run almost pole to pole because the whole system is tipped over.</p></Fragment>
+  </PlanetSlide>
+  <PlanetSlide planet={by.neptune} group="Giants" globe={left} flip>
+    <Fragment slot="notes"><p>Urbain Le Verrier predicted Neptune's position from wobbles in Uranus's orbit; Galle found it within a degree in 1846.</p></Fragment>
+  </PlanetSlide>
+
+  <Slide id="light" class="light">
+    <LightRace />
+    <header>
+      <p class="kicker">At 299,792 km/s</p>
+      <h2>Sunlight's <em>commute</em></h2>
+      <p class="lede">The light reaching Neptune right now left the Sun four hours ago.</p>
+    </header>
+    <Fragment slot="notes">
+      <p>The track is logarithmic past Mercury: the photon moves at constant speed while the clock speeds up exponentially. Replay with the button.</p>
+    </Fragment>
+  </Slide>
+
+  <Slide id="pale-blue-dot" layout="quote" class="pbd" transition="warp">
+    <div class="backdrop">
+      <div class="beams">
+        <i style="--x:58%;--w:110px;--c:#c98a5c;--o:0.28"></i>
+        <i style="--x:66%;--w:70px;--c:#a07ad0;--o:0.2"></i>
+        <i style="--x:73%;--w:160px;--c:#e9b88f;--o:0.32"></i>
+        <i style="--x:84%;--w:90px;--c:#6f8fd8;--o:0.2"></i>
+      </div>
+      <span class="dot"></span>
+      <span class="ring" data-step data-effect="rise">You are here</span>
+    </div>
+    <blockquote>Look again at that dot. That's here. That's home. That's us.</blockquote>
+    <cite>Carl Sagan, <em>Pale Blue Dot</em>, 1994</cite>
+    <Fragment slot="notes">
+      <p>Voyager 1 took the photo on 14 February 1990 from six billion kilometres away. Earth is less than a pixel, caught in a ray of scattered sunlight.</p>
+    </Fragment>
+  </Slide>
+
+  <Slide id="thanks" layout="center" class="thanks" transition="warp">
+    <div class="backdrop">
+      <Globe body="earth" width={1920} height={560} radius={1600} cx={960} cy={1820} light="top" phase={12} style="position:absolute;left:0;bottom:0" />
+    </div>
+    <h1>Clear <em>skies</em></h1>
+    <p class="muted">Astro · @slides/deck · one fragment shader · <code>demos/astro</code></p>
+  </Slide>
+</Deck>
+
+<style>
+  .title {
+    gap: 40px;
+  }
+  .title h1 {
+    font-size: 250px;
+    line-height: 0.82;
+    margin-left: -10px;
+  }
+  .title h1 em {
+    display: inline-block;
+    padding-right: 0.08em;
+  }
+  .title .lede {
+    max-width: 18ch;
+  }
+
+  .mass .corona {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 60% 50% at 50% 50%, rgb(255 138 61 / 0.16), transparent 70%);
+  }
+  .mass .big {
+    position: relative;
+    font: 400 380px/0.9 var(--deck-font-heading);
+    letter-spacing: -0.04em;
+    filter: drop-shadow(0 0 60px rgb(255 140 50 / 0.45));
+  }
+  .mass .lede {
+    position: relative;
+    max-width: none;
+  }
+  .mass .rest {
+    position: relative;
+    font-size: 32px;
+  }
+
+  :is(.scale, .orrery, .light) header {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 900px;
+  }
+  .scale header {
+    margin-left: 360px;
+  }
+  .scale header h2,
+  .orrery header h2,
+  .light header h2 {
+    font-size: 120px;
+  }
+  .orrery header .lede {
+    font-size: 32px;
+    max-width: 20ch;
+  }
+  .scale header .lede,
+  .light header .lede {
+    font-size: 34px;
+    max-width: 28ch;
+  }
+
+  .pbd {
+    padding-right: 900px;
+  }
+  .pbd blockquote {
+    position: relative;
+    font: italic 400 96px/1.05 var(--deck-font-heading);
+  }
+  .pbd blockquote::before {
+    color: #8fb4ff;
+  }
+  .pbd cite {
+    position: relative;
+    font-size: 30px;
+  }
+  .beams i {
+    position: absolute;
+    top: -20%;
+    left: var(--x);
+    width: var(--w);
+    height: 140%;
+    rotate: 14deg;
+    background: linear-gradient(90deg, transparent, var(--c), transparent);
+    opacity: var(--o);
+    filter: blur(14px);
+  }
+  .pbd .dot {
+    position: absolute;
+    left: 1460px;
+    top: 612px;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #bcd4ff;
+    box-shadow: 0 0 8px 2px rgb(150 190 255 / 0.7);
+  }
+  .pbd .ring {
+    position: absolute;
+    left: 1432px;
+    top: 584px;
+    width: 60px;
+    height: 60px;
+    border: 1.5px solid rgb(188 212 255 / 0.7);
+    border-radius: 50%;
+    font: 500 18px/1 var(--deck-font-mono);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #bcd4ff;
+    white-space: nowrap;
+    text-indent: 80px;
+    line-height: 60px;
+  }
+
+  .thanks {
+    justify-content: flex-start;
+    padding-top: 200px;
+  }
+  .thanks h1 {
+    position: relative;
+    font-size: 220px;
+  }
+  .thanks p {
+    position: relative;
+    font-size: 30px;
+  }
+</style>

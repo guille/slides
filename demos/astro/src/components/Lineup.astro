@@ -1,0 +1,83 @@
+---
+import Globe from "./Globe.astro";
+import { planets, SUN_DIAMETER_KM } from "../data/planets";
+import { bodies } from "../scripts/bodies";
+
+// Jupiter's diameter on the stage sets the scale for everything else.
+const JUPITER_PX = 236;
+const scale = JUPITER_PX / planets.find((p) => p.id === "jupiter")!.diameterKm;
+const sunRadius = (SUN_DIAMETER_KM / 2) * scale;
+const SUN_EDGE = 150;
+const Y = 610;
+const xs: Record<string, number> = { mercury: 270, venus: 340, earth: 412, mars: 480, jupiter: 690, saturn: 1080, uranus: 1440, neptune: 1650 };
+
+const items = planets.map((p) => {
+  const d = p.diameterKm * scale;
+  // Leave room around the disk for the halo (and Saturn's rings).
+  const size = Math.max(16, Math.ceil(d / bodies[p.id].radius) + 24);
+  // The rocky four sit close together, so every other label drops a row.
+  const drop = p.order <= 4 && p.order % 2 === 0 ? 92 : 0;
+  return { ...p, d, size, drop, x: xs[p.id], step: p.order <= 4 ? 1 : 2 };
+});
+---
+
+<div class="lineup">
+  <Globe
+    body="sun"
+    width={1920}
+    height={1080}
+    radius={sunRadius}
+    cx={SUN_EDGE - sunRadius}
+    cy={540}
+    style="position:absolute;left:0;top:0"
+  />
+  {
+    items.map((p) => (
+      <>
+        <Globe body={p.id as keyof typeof bodies} width={p.size} light="left" style={`position:absolute;left:${p.x - p.size / 2}px;top:${Y - p.size / 2}px`} />
+        <div
+          class="label"
+          data-step={p.step}
+          data-effect="rise"
+          style={`left:${p.x}px;top:${Y + Math.max(p.d / 2, 10) + 12}px;--c:${p.color};--drop:${p.drop}px`}
+        >
+          <span class="name">{p.name}</span>
+          <span class="km">{p.diameterKm.toLocaleString("en")} km</span>
+        </div>
+      </>
+    ))
+  }
+</div>
+
+<style>
+  .lineup {
+    position: absolute;
+    inset: 0;
+  }
+  .label {
+    position: absolute;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+  .label::before {
+    content: "";
+    width: 1px;
+    height: calc(24px + var(--drop));
+    margin-bottom: 6px;
+    background: linear-gradient(color-mix(in oklab, var(--c) 80%, transparent), transparent);
+  }
+  .name {
+    font: italic 400 40px/1 var(--deck-font-heading);
+    color: var(--c);
+    text-shadow: 0 0 12px #02030a, 0 0 4px #02030a;
+  }
+  .km {
+    font: 500 17px/1 var(--deck-font-mono);
+    letter-spacing: 0.08em;
+    color: var(--deck-muted);
+  }
+</style>

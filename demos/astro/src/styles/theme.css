@@ -1,0 +1,166 @@
+:root {
+  --deck-bg: #02030a;
+  --deck-fg: #eef0fb;
+  --deck-muted: #8d93b3;
+  --deck-accent: #ffb547;
+  --deck-accent-fg: #02030a;
+  --deck-section-fg: var(--deck-fg);
+  --deck-surface: #12152b;
+  --deck-letterbox: #02030a;
+  --deck-font-sans: "Space Grotesk Variable", ui-sans-serif, system-ui, sans-serif;
+  --deck-font-heading: "Instrument Serif", "Times New Roman", serif;
+  --deck-font-mono: "JetBrains Mono Variable", ui-monospace, monospace;
+  --deck-size-body: 40px;
+  --deck-size-small: 28px;
+  --deck-size-h1: 180px;
+  --deck-size-h2: 96px;
+  --deck-transition-duration: 700ms;
+  --deck-step-duration: 600ms;
+  --sun: linear-gradient(100deg, #fff4d6 0%, #ffcf6b 35%, #ff8a3d 70%, #ff5a36 100%);
+}
+
+/* ---------- The sky ----------
+   Lives behind the stage, so it fills the letterbox too and keeps drifting
+   under slide transitions. Each layer slides left across the deck by its own
+   --travel. It moves with translate, which the compositor animates without
+   repainting the window. */
+
+@media screen {
+  .sky {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    background: radial-gradient(ellipse at 50% 120%, #0b0f2a, transparent 70%), var(--deck-bg);
+  }
+  .sky i {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: calc(100% + var(--travel));
+    background: var(--layer) 0 0 / auto 100% repeat-x;
+    translate: calc(var(--deck-progress, 0) * -1 * var(--travel)) 0;
+    transition: translate var(--deck-transition-duration) cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .sky .nebula { --layer: var(--sky-nebula); --travel: 112px; }
+  .sky .far { --layer: var(--sky-far); --travel: 288px; }
+  .sky .near { --layer: var(--sky-near); --travel: 736px; }
+
+  html:not([data-deck-overview]) .deck > section {
+    background: transparent;
+  }
+}
+
+/* Thumbnails and PDF pages have no sky behind them, so they carry a still one. */
+.deck {
+  --sky-still: var(--sky-near) center / cover, var(--sky-far) center / cover, var(--sky-nebula) center / cover, var(--deck-bg);
+}
+html[data-deck-overview] .deck > section {
+  background: var(--sky-still);
+}
+@media print {
+  .deck > section {
+    background: var(--sky-still);
+  }
+}
+
+.twinkles {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+.twinkles i {
+  position: absolute;
+  width: var(--size);
+  height: var(--size);
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 calc(var(--size) * 2) rgb(190 210 255 / 0.6);
+  animation: twinkle 5s ease-in-out infinite alternate;
+}
+@keyframes twinkle {
+  from { opacity: 0.05; transform: scale(0.6); }
+  to { opacity: 0.9; transform: scale(1); }
+}
+html[data-deck-overview] .twinkles,
+html[data-deck-mode="presenter"] .twinkles {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sky i {
+    transition: none;
+  }
+}
+@media print {
+  .sky,
+  .twinkles { display: none; }
+}
+
+/* ---------- Type ---------- */
+
+.deck h1,
+.deck h2 {
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 0.95;
+}
+.deck h1 em,
+.deck h2 em {
+  font-style: italic;
+}
+
+.deck .kicker {
+  font: 500 24px/1 var(--deck-font-mono);
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--deck-accent);
+}
+
+.deck .sun-text {
+  background: var(--sun);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.deck .lede {
+  font-size: 44px;
+  line-height: 1.35;
+  color: color-mix(in oklab, var(--deck-fg) 80%, var(--deck-muted));
+  max-width: 26ch;
+}
+
+.deck[data-progress]::after {
+  height: 4px;
+  background: var(--sun);
+  box-shadow: 0 0 18px #ff9a3d;
+}
+
+/* ---------- Steps ---------- */
+
+.deck [data-effect="rise"][data-state="future"] {
+  translate: 0 40px;
+}
+
+/* ---------- Transitions ---------- */
+
+/* "warp": the old slide rushes past us while the new one arrives from the distance. */
+html[data-deck-transition="warp"]::view-transition-old(deck) {
+  animation: 900ms cubic-bezier(0.7, 0, 0.3, 1) both warp-out;
+}
+html[data-deck-transition="warp"]::view-transition-new(deck) {
+  animation: 900ms cubic-bezier(0.7, 0, 0.3, 1) both warp-in;
+}
+html[data-deck-transition="warp"][data-deck-direction="backward"]::view-transition-old(deck) {
+  animation-name: warp-in;
+  animation-direction: reverse;
+}
+html[data-deck-transition="warp"][data-deck-direction="backward"]::view-transition-new(deck) {
+  animation-name: warp-out;
+  animation-direction: reverse;
+}
+@keyframes warp-out {
+  to { opacity: 0; transform: scale(2.2); filter: blur(24px); }
+}
+@keyframes warp-in {
+  from { opacity: 0; transform: scale(0.4); filter: blur(12px); }
+}

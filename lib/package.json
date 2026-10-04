@@ -1,0 +1,28 @@
+{
+  "name": "@slides/deck",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./deck.js"
+    },
+    "./deck.css": "./deck.css",
+    "./presenter.js": "./presenter.js"
+  },
+  "files": [
+    "deck.js",
+    "deck.css",
+    "presenter.js",
+    "index.d.ts",
+    "types",
+    "README.md"
+  ],
+  "devDependencies": {
+    "typescript": "^7.0.2"
+  },
+  "scripts": {
+    "types": "tsc -p ."
+  }
+}

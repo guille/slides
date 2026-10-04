@@ -1,0 +1,102 @@
+/* Per-slide layout for this deck. Theme tokens live in theme.css. */
+
+.deck kbd {
+  font: 600 0.85em var(--deck-font-mono);
+  padding: 2px 12px;
+  border: 1px solid var(--rule);
+  border-bottom-width: 3px;
+  border-radius: 8px;
+  color: var(--deck-fg);
+}
+
+.deck .huge {
+  font: 600 260px / 1 var(--deck-font-heading);
+  letter-spacing: -0.04em;
+  margin: 0;
+}
+.deck .lede { max-width: 30ch; font-size: 48px; line-height: 1.3; margin: 0; }
+
+.deck .big-list { font-size: 60px; line-height: 1.25; display: grid; gap: 44px; padding-left: 1.1em; margin: 0; }
+.deck .big-list li::marker { color: var(--deck-accent); }
+
+.deck .card ul { margin: 0; padding-left: 1.1em; display: grid; gap: 28px; font-size: 46px; }
+.deck [data-layout="split"] .card h3 { margin-bottom: 40px; }
+.deck .versus-old { opacity: 0.75; }
+.deck .versus-old li { color: var(--deck-muted); }
+.deck .versus-new { border-color: var(--deck-accent); }
+
+/* Scaling widget */
+.deck .widget { margin: 0; display: grid; gap: 20px; align-content: start; }
+.deck .widget canvas {
+  width: 100%;
+  height: auto;
+  background: var(--deck-surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--deck-radius);
+}
+.deck .readout {
+  display: flex;
+  justify-content: space-between;
+  font: 500 var(--deck-size-small) var(--deck-font-mono);
+  color: var(--ink-soft);
+}
+.deck .presets ol { list-style: none; padding: 0; margin: 12px 0 28px; display: grid; gap: 8px; }
+.deck .presets li {
+  display: flex;
+  justify-content: space-between;
+  padding: 18px 28px;
+  border-radius: 12px;
+  border: 1px solid var(--rule);
+  font-size: 44px;
+}
+.deck .presets li span { font: 400 var(--deck-size-small) var(--deck-font-mono); color: var(--deck-muted); align-self: center; }
+.deck .presets li[data-state="current"] { border-color: var(--deck-accent); background: rgb(232 176 74 / 0.1); }
+
+/* Steps / dim */
+.deck .beats { font-size: 60px; line-height: 1.3; display: grid; gap: 64px; margin: 0; padding-left: 1.3em; }
+.deck .beats li::marker { font-family: var(--deck-font-heading); color: var(--deck-accent); }
+
+/* Groups */
+.deck .triad { gap: 40px; margin-top: 16px; }
+.deck .triad .card { display: grid; gap: 24px; align-content: start; padding-block: 36px 52px; }
+.deck .triad .num {
+  font: 600 200px / 0.9 var(--deck-font-heading);
+  color: var(--deck-accent);
+}
+.deck .triad p { font-size: 44px; line-height: 1.3; }
+.deck .captions { display: grid; }
+.deck .captions > p { margin: 0; color: var(--ink-soft); }
+.deck .captions code { color: var(--deck-accent); }
+/* "only" captions take turns in one slot; print and overview reveal them all, so list them there. */
+@media screen { html:not([data-deck-overview]) .deck .captions > p { grid-area: 1 / 1; } }
+
+/* Theme slide */
+.deck #theme > :is(pre, .swatches) { align-self: center; }
+.deck .swatches { display: grid; grid-template-columns: repeat(5, 1fr); gap: 20px; align-content: center; }
+.deck .swatch { display: grid; gap: 12px; justify-items: center; }
+.deck .swatch i {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--c);
+  border: 2px solid var(--rule);
+}
+.deck .swatch span { font: 400 24px var(--deck-font-mono); color: var(--deck-muted); }
+.deck .swatch-note { grid-column: 1 / -1; margin-top: 24px; }
+
+/* Bleed caption */
+.deck [data-layout="bleed"] .caption { max-width: 820px; }
+.deck [data-layout="bleed"] .caption p { margin: 0; }
+.deck [data-layout="bleed"] .caption .kicker { margin-bottom: 12px; }
+
+/* PDF slide */
+.deck #pdf pre { font-size: 34px; }
+.deck .lede-2 { margin: 0; color: var(--ink-soft); max-width: 36ch; }
+.deck .facts { gap: 40px; margin-top: 24px; }
+.deck .facts p { margin: 0; border-top: 3px solid var(--deck-accent); color: var(--ink-soft); display: grid; gap: 12px; padding-top: 36px; }
+.deck .facts strong { color: var(--deck-fg); font: 600 64px / 1.1 var(--deck-font-heading); }
+
+/* End */
+.deck #end h2 { font-size: 160px; }
+
+.deck #code pre { font-size: 34px; }

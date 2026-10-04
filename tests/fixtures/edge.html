@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Edge fixture</title>
+  <link rel="stylesheet" href="../../lib/deck.css">
+</head>
+<body>
+  <main class="deck">
+    <section id="a"><h2>A</h2></section>
+    <section id="2024"><h2>Year</h2></section>
+    <section id="v1.2"><h2>Version</h2></section>
+    <section id="with space"><h2>Space</h2><p data-step>x</p></section>
+  </main>
+  <script type="module">
+    import { deck } from "../../lib/deck.js";
+    window.__err = null;
+    try { window.d = deck(); } catch (e) { window.__err = String(e); }
+  </script>
+</body>
+</html>

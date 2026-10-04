@@ -1,0 +1,69 @@
+[tasks."dev:all"]
+description = "Run every demo; the landing page at http://localhost:8000/ links them all"
+# Explicit --jobs: the servers never exit, so mise's default of 4 would starve the fifth.
+run         = "mise run --jobs 5 dev:vanilla ::: dev:svelte ::: dev:astro ::: dev:lit ::: dev:htmx"
+
+[tasks."dev:vanilla"]
+description = "Serve the vanilla demo (no build) at http://localhost:8000/demos/vanilla/"
+run         = "python3 -m http.server 8000 --bind 127.0.0.1"
+
+[tasks."dev:svelte"]
+description = "Run the Svelte demo dev server"
+run         = "pnpm --filter svelte-demo dev"
+
+[tasks."dev:htmx"]
+description = "Run the htmx demo's Go server at http://127.0.0.1:8090/"
+dir         = "demos/htmx"
+run         = "go build -o ../../.cache/htmx-demo . && exec ../../.cache/htmx-demo"
+
+[tasks.pdf]
+description = "Export a running deck to PDF: mise run pdf <url> [out.pdf]"
+run         = "uv run tools/pdf.py"
+
+[tasks."preview:svelte"]
+description = "Build the Svelte demo and serve the production build"
+run         = "pnpm --filter svelte-demo build && pnpm --filter svelte-demo preview"
+
+[tasks.test]
+description = "Run the library's browser tests (chromium + firefox)"
+run         = "uv run --with pytest --with playwright pytest tests/ -q"
+
+[tasks.site]
+description = "Build the GitHub Pages site into _site/ and serve it at http://localhost:8000/"
+run         = "tools/site.sh && python3 -m http.server 8000 --bind 127.0.0.1 -d _site"
+
+[tasks."dev:astro"]
+description = "Run the Astro demo dev server"
+run         = "pnpm --filter astro-demo dev"
+
+[tasks."preview:astro"]
+description = "Build the Astro demo and serve the production build"
+run         = "pnpm --filter astro-demo build && pnpm --filter astro-demo preview"
+
+[tasks."dev:lit"]
+description = "Run the Lit demo dev server"
+run         = "pnpm --filter lit-demo dev"
+
+[tasks."preview:lit"]
+description = "Build the Lit demo and serve the production build"
+run         = "pnpm --filter lit-demo build && pnpm --filter lit-demo preview"
+
+[tasks.types]
+description = "Generate lib/types/ from deck.js's JSDoc"
+run         = "pnpm --filter @slides/deck types"
+
+[tasks."types:check"]
+description = "Type-check lib/ and fail if lib/types/ is out of date"
+dir         = "lib"
+run         = '''
+out=$(mktemp -d)
+pnpm exec tsc -p . --declarationDir "$out"
+diff -r "$out" types
+'''
+
+[deps.pnpm]
+auto = true
+
+[tools]
+node = "latest"
+pnpm = "latest"

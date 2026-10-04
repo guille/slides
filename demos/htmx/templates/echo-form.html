@@ -1,0 +1,9 @@
+{{define "echo-form"}}
+<button id="ping" hx-get="/echo" hx-target="#echo-out">
+  GET /echo
+</button>
+<form id="greet" hx-post="/echo" hx-target="#echo-out">
+  <input name="name" placeholder="your name" autocomplete="off">
+  <button>POST /echo</button>
+</form>
+{{end}}

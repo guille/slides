@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kasaysayan</title>
+</head>
+<body>
+  <main class="deck" data-transition="fade" data-progress data-slide-numbers>
+    <section data-layout="title" id="intro" data-no-number>
+      <div class="backdrop"><ph-sun></ph-sun></div>
+      <p class="kicker">A short history of the Philippines</p>
+      <h1>Kasaysayan</h1>
+      <p>From the barangay to the republic</p>
+      <aside class="notes">
+        <p><em>Kasaysayan</em> is Tagalog for history. Its root, <em>saysay</em>, means both "story" and "significance": the historian Zeus Salazar defined history as <em>salaysay na may saysay</em>, a story that has meaning.</p>
+        <p>This deck is built with Lit web components. Press <strong>O</strong> for the overview, <strong>P</strong> for the presenter view.</p>
+      </aside>
+    </section>
+
+    <section id="islands">
+      <h2>An archipelago, not a single place</h2>
+      <div class="stats">
+        <figure style="--c: var(--deck-accent)">
+          <span class="n"><ph-count to="7641"></ph-count></span>
+          <figcaption>islands</figcaption>
+        </figure>
+        <figure style="--c: var(--ph-red)">
+          <span class="n"><ph-count to="109"></ph-count></span>
+          <figcaption>million people (2020 census)</figcaption>
+        </figure>
+        <figure style="--c: var(--ph-sun)">
+          <span class="n"><ph-count to="175"></ph-count></span>
+          <figcaption>living languages</figcaption>
+        </figure>
+      </div>
+      <p class="muted small">Three island groups, Luzon, the Visayas and Mindanao, are the three stars on the flag.</p>
+      <aside class="notes">
+        <p>The island count went from 7,107 to 7,641 in 2016, when the national mapping agency (NAMRIA) re-surveyed the coastline with better imagery.</p>
+        <p>2020 census: 109,035,343. Languages: Ethnologue lists about 175 living languages. Filipino (based on Tagalog) and English are official.</p>
+      </aside>
+    </section>
+
+    <section id="timeline">
+      <h2>A thousand years in eight moments</h2>
+      <ph-timeline>
+        <ph-event data-step data-effect="rise" year="900" heading="Laguna Copperplate">The oldest dated document found in the islands: a debt pardon in Old Malay.</ph-event>
+        <ph-event data-step data-effect="rise" year="1521" heading="Battle of Mactan">Lapulapu's warriors kill Magellan on the beach at Mactan, 27 April.</ph-event>
+        <ph-event data-step data-effect="rise" year="1565" heading="Legazpi in Cebu">333 years of Spanish rule begin. Manila becomes the capital in 1571.</ph-event>
+        <ph-event data-step data-effect="rise" year="1872" heading="Gomburza">Three secular priests are garroted after the Cavite mutiny.</ph-event>
+        <ph-event data-step data-effect="rise" year="1896" heading="Revolution">The Katipunan rises. Rizal is shot in Manila on 30 December.</ph-event>
+        <ph-event data-step data-effect="rise" year="1898" heading="Independence">Declared at Kawit on 12 June. In December, Spain cedes the islands to the US.</ph-event>
+        <ph-event data-step data-effect="rise" year="1946" heading="The Republic">After American rule and Japanese occupation, independence on 4 July.</ph-event>
+        <ph-event data-step data-effect="rise" year="1986" heading="People Power">Four days on EDSA end Ferdinand Marcos's twenty years in power.</ph-event>
+      </ph-timeline>
+      <aside class="notes">
+        <p>Each event is a <code>&lt;ph-event&gt;</code> in the light DOM, slotted into the timeline's shadow root. That keeps <code>data-step</code> where the deck can find it.</p>
+        <p>The copperplate, dated Saka year 822 (900 CE), was found in 1989 near Lumban, Laguna. It names Tondo and its neighbours around Manila Bay.</p>
+        <p>Treaty of Paris, 10 December 1898: Spain cedes the Philippines to the United States for 20 million dollars.</p>
+      </aside>
+    </section>
+
+    <section data-layout="section" data-transition="slide" id="before">
+      <p class="kicker">Part 1 · before 1565</p>
+      <h1>Barangays and sultanates</h1>
+      <p>Islands connected by the sea, not divided by it</p>
+    </section>
+
+    <section data-layout="split" id="barangay">
+      <h2>The barangay</h2>
+      <div>
+        <p>Named after the <em lang="tl">balangay</em>, the plank-built boats that carried settlers and traders between islands.</p>
+        <ul>
+          <li data-step data-effect="dim"><strong>Datu</strong>: the chief, by birth and by deeds</li>
+          <li data-step data-effect="dim"><strong>Maharlika</strong>: warrior nobility</li>
+          <li data-step data-effect="dim"><strong>Timawa</strong>: free commoners</li>
+          <li data-step data-effect="dim"><strong>Alipin</strong>: dependents, often in debt bondage</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Beyond the village</h3>
+        <ul>
+          <li data-step data-effect="rise">Polities on rivers and bays: Tondo, Butuan, Cebu</li>
+          <li data-step data-effect="rise">Trade with China, Brunei, Java and Champa</li>
+          <li data-step data-effect="rise">Islam in the south: the Sulu sultanate by the 15th century, Maguindanao by the 16th</li>
+        </ul>
+      </div>
+      <aside class="notes">
+        <p>A barangay was typically 30 to 100 households. Classes follow Tagalog terms; the Visayan equivalents differ.</p>
+        <p>Boats excavated at Butuan from 1976 on are among the oldest watercraft excavated in Southeast Asia.</p>
+      </aside>
+    </section>
+
+    <section id="baybayin">
+      <h2>Baybayin: try writing a word</h2>
+      <ph-baybayin></ph-baybayin>
+      <aside class="notes">
+        <p>An abugida: each sign is a consonant plus "a"; a mark above (kudlit) makes it e/i, below makes it o/u. Final consonants were simply not written.</p>
+        <p>The Spanish printed it in the <em>Doctrina Christiana</em> (Manila, 1593). Francisco López added the cross-shaped virama in 1620 so final consonants could be written.</p>
+        <p>"Alibata" is a 1914 coinage; the people who wrote it called it baybayin. Typing here, the arrow keys and letters stay in the text field.</p>
+      </aside>
+    </section>
+
+    <section data-layout="section" data-transition="slide" id="spain">
+      <p class="kicker">Part 2 · 1565–1898</p>
+      <h1>Three centuries of Spain</h1>
+      <p>Manila becomes a hinge between Asia and the Americas</p>
+    </section>
+
+    <section id="galleon">
+      <h2>The Manila galleon</h2>
+      <ph-galleon></ph-galleon>
+      <aside class="notes">
+        <p>In 1565 Andrés de Urdaneta found the way back east: sail north with the Kuroshio current to around 40°N, then ride the westerlies to California and follow the coast south.</p>
+        <p>Silver from Mexico and Peru paid for Chinese goods in Manila. The Mexican War of Independence ended the trade; the last galleon sailed in 1815.</p>
+        <p>The routes are drawn inside a shadow root, where the deck can't see <code>data-step</code>. <code>&lt;ph-galleon&gt;</code> puts <code>data-step-count</code> on itself, from its route data.</p>
+      </aside>
+    </section>
+
+    <section data-layout="quote" id="rizal">
+      <blockquote lang="es">¡Adiós, Patria adorada, región del sol querida, Perla del Mar de Oriente, nuestro perdido Edén!</blockquote>
+      <p class="translation">Farewell, beloved country, region the sun holds dear, Pearl of the Orient Sea, our lost Eden!</p>
+      <figcaption>José Rizal, <em lang="es">Mi último adiós</em>, written before his execution, 30 December 1896</figcaption>
+      <aside class="notes">
+        <p>Rizal's novels <em>Noli me tángere</em> (1887) and <em>El filibusterismo</em> (1891) indicted the friar-run colonial order. He argued for reform, not revolution, but was executed as its instigator.</p>
+        <p>The untitled poem was smuggled out of his cell hidden in a small alcohol stove, by tradition.</p>
+      </aside>
+    </section>
+
+    <section data-layout="section" data-transition="slide" id="revolution">
+      <p class="kicker">Part 3 · 1896 onward</p>
+      <h1>Revolution and republic</h1>
+      <p>Independence, twice</p>
+    </section>
+
+    <section data-layout="split" id="independence">
+      <h2>Two independence days</h2>
+      <div>
+        <h3 class="accent">12 June 1898</h3>
+        <ul>
+          <li data-step data-effect="rise">Emilio Aguinaldo declares independence at Kawit, Cavite</li>
+          <li data-step data-effect="rise">The flag is unfurled and the national march first played</li>
+          <li data-step data-effect="rise">The US does not recognize it; war follows, 1899–1902</li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="accent">4 July 1946</h3>
+        <ul>
+          <li data-step data-effect="rise">The Treaty of Manila: the US recognizes the Republic</li>
+          <li data-step data-effect="rise">Manuel Roxas is its first president</li>
+        </ul>
+        <p class="split-note" data-step data-effect="rise">1962: President Diosdado Macapagal moves Independence Day to <strong>12 June</strong></p>
+      </div>
+      <aside class="notes">
+        <p>4 July is still observed, as Philippine–American Friendship Day.</p>
+        <p>The Malolos Republic (1899) was the first constitutional republic in Asia.</p>
+      </aside>
+    </section>
+
+    <section id="eras">
+      <h2>Who governed the islands</h2>
+      <ph-eras></ph-eras>
+      <aside class="notes">
+        <p>The year counters are <code>&lt;ph-count&gt;</code> elements nested inside the <code>&lt;ph-eras&gt;</code> shadow root. <code>onSlide</code> climbs out of shadow roots to find their slide.</p>
+        <p>Before 1565: centuries of barangays, polities and sultanates, which this bar doesn't even try to draw to scale.</p>
+      </aside>
+    </section>
+
+    <section id="edsa">
+      <h2>People Power, 1986</h2>
+      <ul>
+        <li data-step data-effect="rise"><strong>1972</strong>: Ferdinand Marcos declares martial law. It is lifted in 1981; his rule is not</li>
+        <li data-step data-effect="rise"><strong>1983</strong>: opposition leader Ninoy Aquino is shot dead at Manila airport, returning from exile</li>
+        <li data-step data-effect="rise"><strong>February 1986</strong>: a fraud-ridden snap election, then a military revolt</li>
+        <li data-step data-effect="rise"><strong>22–25 February</strong>: crowds fill EDSA to shield the rebels. Marcos flies to Hawaii; Corazon Aquino takes office</li>
+      </ul>
+      <aside class="notes">
+        <p>EDSA is Epifanio de los Santos Avenue, the avenue between the two military camps the rebels held. Hundreds of thousands stood in the way of the tanks, with nuns and priests in front.</p>
+      </aside>
+    </section>
+
+    <section data-layout="title" id="salamat" data-no-number>
+      <div class="backdrop"><ph-sun></ph-sun></div>
+      <h1><ph-baybayin-text text="maraming salamat"></ph-baybayin-text></h1>
+      <h2 lang="tl">Maraming salamat</h2>
+      <p>Thank you very much</p>
+    </section>
+  </main>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

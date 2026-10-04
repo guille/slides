@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Layers fixture</title>
+  <link rel="stylesheet" href="../../lib/deck.css">
+  <style>
+    /* Plausible unlayered author CSS, as the README recommends. */
+    :root { --deck-accent: rgb(1, 2, 3); }
+    .deck h2 { color: rgb(10, 20, 30); }
+    .hero { position: relative; }
+    .card { opacity: 1; transition: transform 200ms; }
+    aside { display: block; }
+  </style>
+</head>
+<body>
+  <main class="deck">
+    <section id="s1"><h2>One</h2><div class="card" data-step>Card</div><aside class="notes">secret notes</aside></section>
+    <section id="s2" class="hero"><h2>Hero</h2></section>
+  </main>
+  <script type="module">
+    import { deck } from "../../lib/deck.js";
+    window.d = deck();
+  </script>
+</body>
+</html>

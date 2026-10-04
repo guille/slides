@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Basic fixture</title>
+  <link rel="stylesheet" href="../../lib/deck.css">
+</head>
+<body>
+  <main class="deck" data-progress data-slide-numbers>
+    <section data-layout="title" id="intro">
+      <h1>Fixture</h1>
+      <p>Subtitle</p>
+      <aside class="notes"><p>Intro notes</p></aside>
+    </section>
+    <section id="auto">
+      <h2>Auto steps</h2>
+      <ul>
+        <li data-step>One</li>
+        <li data-step>Two</li>
+        <li data-step>Three</li>
+      </ul>
+      <div class="probe" id="probe"></div>
+      <aside class="notes"><p>Auto notes</p></aside>
+    </section>
+    <section id="grouped">
+      <h2>Grouped steps</h2>
+      <p data-step="2" class="g2a">Two A</p>
+      <p data-step="1" class="g1">One</p>
+      <p data-step="2" class="g2b">Two B</p>
+      <p data-step class="g3">Auto after 2 = 3</p>
+    </section>
+    <section id="controls">
+      <h2>Controls</h2>
+      <button id="btn">Button</button>
+      <a href="#controls" id="lnk">Link</a>
+      <div data-no-nav id="nonav"><span id="nonav-inner">No nav</span></div>
+      <input id="txt">
+    </section>
+    <section id="last">
+      <h2>Last</h2>
+      <p data-step data-effect="only" class="only1">Only one</p>
+      <p data-step data-effect="highlight" class="hl">Highlight</p>
+    </section>
+  </main>
+  <script type="module">
+    import { deck, onSlide } from "../../lib/deck.js";
+    window.__events = [];
+    window.__comp = [];
+    const probe = document.getElementById("probe");
+    onSlide(probe, {
+      enter: (d) => __comp.push(["enter", d.step]),
+      leave: () => __comp.push(["leave"]),
+      step: (d) => __comp.push(["step", d.step]),
+    });
+    const root = document.querySelector(".deck");
+    for (const t of ["deckchange", "slideenter", "slideleave", "stepchange"]) {
+      root.addEventListener(t, (e) => __events.push([t, e.target.id || "deck", JSON.parse(JSON.stringify(e.detail))]));
+    }
+    const params = new URLSearchParams(location.search);
+    const opts = {};
+    if (params.get("t") === "fn") {
+      opts.transition = async (update) => { await new Promise((r) => setTimeout(r, 200)); update(); };
+    } else if (params.get("t")) opts.transition = params.get("t");
+    window.d = deck(root, opts);
+    window.__late = [];
+    window.__lateStop = onSlide(document.querySelector("#intro h1"), {
+      enter: (d) => __late.push(["enter", d.step]),
+      step: (d) => __late.push(["step", d.step]),
+    });
+  </script>
+</body>
+</html>

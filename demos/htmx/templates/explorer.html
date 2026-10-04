@@ -1,0 +1,38 @@
+{{define "results"}}
+<p class="count">{{.Total}} of {{.All}} metrics{{if .More}} · {{.More}} more, keep typing{{end}}</p>
+<ul>
+  {{range .Results}}
+  <li>
+    <button hx-get="/metrics/view?name={{.Raw}}" hx-target="#metric-view">
+      <span class="name">{{range .Name}}{{if .Hit}}<mark>{{.Text}}</mark>{{else}}{{.Text}}{{end}}{{end}}</span>
+      <span class="kind">{{.Kind}}</span>
+    </button>
+  </li>
+  {{else}}
+  <li class="none">No metric matches “{{.Query}}”.</li>
+  {{end}}
+</ul>
+{{end}}
+
+{{define "view"}}
+<div class="view" hx-get="/metrics/view?name={{.Name}}" hx-trigger="every 1s [onStage(this)]" hx-swap="outerHTML">
+  <p class="name">{{.Name}} <span class="kind">{{.Kind}}</span></p>
+  <p class="desc">{{.Desc}}</p>
+  {{if .Bars}}
+  <dl class="quantiles">
+    {{range .Quantiles}}<div><dt>{{.Label}}</dt><dd>{{.Value}}</dd></div>{{end}}
+    <div><dt>count</dt><dd>{{.Count}}</dd></div>
+  </dl>
+  <svg class="hist" viewBox="0 0 1000 300" preserveAspectRatio="none">
+    {{range .Bars}}<rect x="{{.X}}" y="{{.Y}}" width="{{.W}}" height="{{.H}}"/>{{end}}
+  </svg>
+  <p class="axis"><span>{{.Low}}</span><span>{{.High}}</span></p>
+  {{else if .Spark.Line}}
+  <p class="value">{{.Spark.Value}}</p>
+  {{template "spark" .Spark}}
+  <p class="axis"><span>−60 s</span><span>peak {{.Spark.Max}}</span><span>now</span></p>
+  {{else}}
+  <p class="value muted">no data yet</p>
+  {{end}}
+</div>
+{{end}}

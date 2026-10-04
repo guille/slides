@@ -1,0 +1,112 @@
+:root {
+  --deck-bg: #f7f2e8;
+  --deck-fg: #1b1f3b;
+  --deck-muted: #6e6858;
+  --deck-accent: #0038a8;
+  --deck-accent-fg: #ffffff;
+  --deck-surface: #e9e0cc;
+  --deck-letterbox: #0b0d1a;
+  --deck-font-sans: "Public Sans Variable", ui-sans-serif, system-ui, sans-serif;
+  --deck-font-heading: "Fraunces Variable", Georgia, serif;
+  --deck-size-body: 40px;
+  --deck-size-small: 28px;
+  --deck-radius: 14px;
+  --deck-weight-h1: 600;
+  --deck-weight-h2: 600;
+  --deck-heading-variation: "SOFT" 50, "WONK" 1;
+
+  /* Flag colours beyond the accent. Custom properties inherit into shadow roots. */
+  --ph-red: #ce1126;
+  --ph-sun: #fcd116;
+}
+
+.deck .kicker {
+  font: 700 26px var(--deck-font-sans);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--ph-red);
+}
+
+.deck em,
+.deck [lang="tl"],
+.deck [lang="es"] {
+  font-style: italic;
+}
+
+.deck .baybayin {
+  font-family: "Noto Sans Tagalog", sans-serif;
+  font-style: normal;
+}
+
+/* Title and closing: the flag's sun, rising behind the text */
+.deck > section[data-layout="title"] h1 {
+  font-size: 180px;
+  line-height: 1;
+}
+.deck ph-sun {
+  position: absolute;
+  right: -100px;
+  top: 50%;
+  height: 880px;
+  translate: 0 -50%;
+}
+.deck > section[data-state="current"] {
+  --ph-sun-spin: running;
+}
+.deck #salamat h1 {
+  font-size: 120px;
+}
+
+/* Section dividers: the flag's blue over red */
+.deck > section[data-layout="section"] {
+  background: linear-gradient(var(--deck-accent) 0 80%, var(--ph-red) 80%);
+}
+.deck > section[data-layout="section"] .kicker {
+  color: var(--ph-sun);
+}
+
+.deck > section[data-layout="quote"] blockquote {
+  font: italic 500 72px / 1.2 var(--deck-font-heading);
+}
+.deck > section[data-layout="quote"] blockquote::before {
+  color: var(--ph-red);
+}
+.deck > section[data-layout="quote"] .translation {
+  font-size: 40px;
+  color: var(--deck-muted);
+}
+
+/* Stats */
+.deck .stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--deck-gap);
+  margin-block: auto;
+}
+.deck .stats figure {
+  gap: 12px;
+  padding-top: 32px;
+  border-top: 10px solid var(--c);
+}
+.deck .stats .n {
+  font: 600 150px / 1 var(--deck-font-heading);
+  letter-spacing: -0.03em;
+}
+.deck .stats figcaption {
+  font-size: 36px;
+  color: var(--deck-fg);
+}
+
+.deck ph-timeline,
+.deck ph-galleon,
+.deck ph-eras,
+.deck ph-baybayin {
+  flex: 1;
+  min-height: 0;
+}
+
+.deck .split-note {
+  margin-top: auto;
+  padding-top: 24px;
+  border-top: 3px solid var(--deck-surface);
+}
