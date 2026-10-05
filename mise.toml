@@ -54,12 +54,7 @@ run         = "pnpm --filter @slides/deck types"
 
 [tasks."types:check"]
 description = "Type-check lib/ and fail if lib/types/ is out of date"
-dir         = "lib"
-run         = '''
-out=$(mktemp -d)
-pnpm exec tsc -p . --declarationDir "$out"
-diff -r "$out" types
-'''
+run         = "tools/types-check.sh"
 
 [deps.pnpm]
 auto = true
@@ -67,3 +62,7 @@ auto = true
 [tools]
 node = "latest"
 pnpm = "latest"
+
+[tasks."hooks:install"]
+description = "Use the repo's git hooks in .githooks/"
+run         = "git config core.hooksPath .githooks"

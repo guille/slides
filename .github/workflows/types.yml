@@ -1,0 +1,32 @@
+name: Types
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - lib/**
+      - tools/types-check.sh
+      - .github/workflows/types.yml
+  pull_request:
+    paths:
+      - lib/**
+      - tools/types-check.sh
+      - .github/workflows/types.yml
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+        with:
+          version: latest
+      - uses: actions/setup-node@v7
+        with:
+          node-version: latest
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --filter @slides/deck
+      - run: tools/types-check.sh

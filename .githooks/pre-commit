@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Check the staged lib/, not the working tree, so unstaged fixes can't mask a stale commit.
+set -euo pipefail
+git diff --cached --quiet -- lib/ && exit 0
+
+staged=$(mktemp -d)
+trap 'rm -rf "$staged"' EXIT
+git ls-files -z -- lib/ | git checkout-index -z --stdin --prefix="$staged/"
+tools/types-check.sh "$staged/lib"
