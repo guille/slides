@@ -1,5 +1,5 @@
 import type { Deck } from "./deck.js";
-/** @import { Deck } from "./deck.js" */
+/** @import { Deck, Position } from "./deck.js" */
 /**
  * @param {Deck} api
  * @param {AbortSignal} signal

@@ -3,7 +3,6 @@
     "allowJs": true,
     "checkJs": true,
     "strict": true,
-    "noImplicitAny": false,
     "declaration": true,
     "emitDeclarationOnly": true,
     "declarationDir": "types",
