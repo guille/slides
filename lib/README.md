@@ -62,8 +62,8 @@ need a real origin.
 - **Overflow is a bug.** Slides clip at the stage edge. The runtime watches
   slide content as it changes size (images loading, fonts, components). An
   overflowing slide, or a clipped `<pre>`, triggers a console warning
-  (`deck: slide N (#id) overflows the stage`, once web fonts have loaded) and
-  a red outline in the overview.
+  with how much to cut (`deck: slide N (#id) overflows the stage (38px too
+  tall)`, once web fonts have loaded) and a red outline in the overview.
   Split the slide or cut content instead of shrinking text. Decoration meant
   to run off the edge goes inside a `.backdrop`, which doesn't count.
 
@@ -131,9 +131,12 @@ Elements with `data-step` change state as you press next.
 - **Gaps** in numbering create steps where nothing changes.
 - **JS-driven steps:** `data-step-count="4"` on the slide, or on any element
   inside it, gives the slide at least four steps even with no `data-step`
-  elements. A component then reacts through `onSlide`'s `step` callback. A
-  component can set the count on its own host element, so the number lives
-  next to the data it draws. Counts don't add up: the slide takes the largest.
+  elements. The count is the last step number: `4` means steps 0–4, four
+  presses of next. A component then reacts through `onSlide`'s `step`
+  callback. A component can set the count on its own host element, so the
+  number lives next to the data it draws. Counts don't add up: the slide's
+  last step is the largest of any `data-step-count` and any `data-step`
+  number, so a component's steps and `data-step` elements can share a slide.
 - **Fixed counts:** a slide's step count must be in the page from the start,
   as `data-step` elements or `data-step-count`. Define components that set
   their own count before calling `deck()`, or a deep link to one of their
@@ -145,7 +148,10 @@ On the current slide, every step element gets
 `data-state="future" | "current" | "past"`. Elements on other slides, and every
 element in overview and print/PDF, have **no** `data-state`. Effects keyed on
 `[data-state]` therefore switch off automatically and slides show fully
-revealed.
+revealed. So write the revealed look as the base style and the pre-reveal look
+on `[data-state="future"]`: an animated meter's base is its final value and
+`future` collapses it. A look set only on `[data-state="current"]` is lost in
+overview and print.
 
 | `data-effect` | Behaviour                                         |
 | ------------- | ------------------------------------------------- |
