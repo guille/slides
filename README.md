@@ -12,6 +12,8 @@ The idea is to make things easy to consume from any library or framework. This r
 
 The repo includes a couple of demos with different frameworks (vanilla JS, svelte, astro, lit web components, htmx) showing off different capabilities.
 
+There are also some SKILLs under skills/ that capture some recommended usage patterns.
+
 It also includes a Python pdf exporter under (tools/)
 
 In a deck:
