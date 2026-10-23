@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Steps fixture</title>
+  <link rel="stylesheet" href="../../lib/deck.css">
+</head>
+<body>
+  <main class="deck">
+    <section id="before"><h2>Before</h2></section>
+    <section id="nested">
+      <div data-step data-effect="dim" class="outer">
+        <p data-step data-effect="rise">Inner one</p>
+        <p data-step>Inner two</p>
+      </div>
+    </section>
+    <section id="after"><h2>After</h2></section>
+  </main>
+  <script type="module">
+    import { deck } from "../../lib/deck.js";
+    window.d = deck();
+  </script>
+</body>
+</html>

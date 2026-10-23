@@ -81,6 +81,11 @@
     }
   }
 
+  /* Set by deck.js while steps change outside the slide on show; see render(). */
+  html[data-deck-snap] .deck [data-step] {
+    transition: none !important;
+  }
+
   .deck .notes {
     display: none !important;
   }

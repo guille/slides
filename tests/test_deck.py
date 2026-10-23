@@ -610,3 +610,37 @@ def test_unlayered_css_cannot_break_stage_mechanics(page):
     cs = "([sel, prop]) => getComputedStyle(document.querySelector(sel)).getPropertyValue(prop)"
     assert page.evaluate(cs, ["#s2", "position"]) == "absolute"
     assert page.evaluate(cs, [".notes", "display"]) == "none"
+
+
+# ---------- Steps ----------
+
+VISIBLE_STEPS = "[...document.querySelectorAll('#nested [data-step]')].filter(e => getComputedStyle(e).visibility === 'visible').map(e => e.className || e.textContent)"
+
+
+@pytest.mark.parametrize("start,move", [("nested.3", "d.next()"), ("nested.1", "d.goto(0)")])
+def test_steps_do_not_outlive_the_slide_they_leave(page, start, move):
+    page.open(f"steps.html#{start}")
+    page.wait_for_timeout(400)
+    page.evaluate(move)
+    page.wait_for_timeout(50)
+    assert page.evaluate(VISIBLE_STEPS) == []
+
+
+OUTER = "+getComputedStyle(document.querySelector('#nested .outer')).opacity"
+
+
+def test_steps_snap_into_a_slide_entered_backward(page):
+    page.open("steps.html#after")
+    page.wait_for_timeout(400)
+    page.evaluate("d.prev()")
+    page.wait_for_timeout(30)
+    assert page.pos() == [1, 3]
+    assert page.evaluate(OUTER) == 0.35
+
+
+def test_steps_animate_within_a_slide(page):
+    page.open("steps.html#nested.1")
+    page.wait_for_timeout(400)
+    page.evaluate("d.next()")
+    page.wait_for_timeout(100)
+    assert 0.35 < page.evaluate(OUTER) < 1
