@@ -1,15 +1,17 @@
 import { onSlide } from "./lib/deck.js";
 
 const STAGE = { w: 1920, h: 1080 };
-const PRESETS = [
-  null, // step 0: drift through sizes on its own
+// In list order: step n highlights WINDOWS[n - 1], step 0 lights them all.
+const WINDOWS = [
   { w: 1440, h: 900 },  // laptop
   { w: 1024, h: 768 },  // projector
   { w: 390, h: 844 },   // phone
   { w: 3440, h: 1440 }, // ultrawide
 ];
+const DIM = 0.3;
 
 const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+const scaleOf = (win) => Math.min(win.w / STAGE.w, win.h / STAGE.h);
 
 export function mountStageWidget(canvas, readout) {
   const ctx = canvas.getContext("2d");
@@ -18,71 +20,76 @@ export function mountStageWidget(canvas, readout) {
   const H = canvas.height;
   const pad = 40;
   const colors = { letterbox: css("--deck-letterbox"), rule: css("--rule"), accent: css("--deck-accent") };
+  const fadeMs = parseFloat(css("--deck-step-duration")) || 300;
   const sizeEl = readout.querySelector("[data-size]");
   const scaleEl = readout.querySelector("[data-scale]");
   let raf = 0;
-  let target = null;
-  let t0 = 0;
   let deckScale = 1;
-  // Current window size in "device" pixels; eased toward the target each frame.
-  const cur = { w: 1920, h: 1080 };
+  let current = 0;
+  // Each window's opacity, faded toward goal() after a step.
+  const alpha = WINDOWS.map(() => 1);
+  let fade = null;
+  let arriving = false;
 
-  function drift(t) {
-    const p = (Math.sin(t / 1400) + 1) / 2;
-    const q = (Math.sin(t / 2300 + 1) + 1) / 2;
-    return { w: 700 + p * 2600, h: 700 + q * 700 };
-  }
+  // A 2×2 grid, each window fitted into its own cell.
+  const cw = (W - pad * 3) / 2;
+  const ch = (H - pad * 3) / 2;
+  const cells = WINDOWS.map((win, i) => {
+    const zoom = Math.min(cw / win.w, ch / win.h);
+    const w = win.w * zoom;
+    const h = win.h * zoom;
+    const x = pad + (i % 2) * (cw + pad) + (cw - w) / 2;
+    const y = pad + Math.floor(i / 2) * (ch + pad) + (ch - h) / 2;
+    return { x, y, w, h, zoom };
+  });
 
-  // Returns whether the window has reached a preset, so the loop can stop.
-  function advance(now) {
-    const goal = target ?? drift(now - t0);
-    cur.w += (goal.w - cur.w) * 0.08;
-    cur.h += (goal.h - cur.h) * 0.08;
-    return target !== null && Math.abs(goal.w - cur.w) < 0.5 && Math.abs(goal.h - cur.h) < 0.5;
-  }
+  const goal = (i) => (current === 0 || current === i + 1 ? 1 : DIM);
 
-  function draw() {
-    // Fit the device window into the canvas.
-    const fit = Math.min((W - pad * 2) / cur.w, (H - pad * 2) / cur.h);
-    const ww = cur.w * fit;
-    const wh = cur.h * fit;
-    const wx = (W - ww) / 2;
-    const wy = (H - wh) / 2;
-
-    // Fit the stage into the window: that's all the runtime does.
-    const scale = Math.min(cur.w / STAGE.w, cur.h / STAGE.h);
-    const sw = STAGE.w * scale * fit;
-    const sh = STAGE.h * scale * fit;
-    const sx = wx + (ww - sw) / 2;
-    const sy = wy + (wh - sh) / 2;
-
-    ctx.clearRect(0, 0, W, H);
+  function drawWindow(win, cell, a, lit) {
+    ctx.globalAlpha = a;
     ctx.fillStyle = colors.letterbox;
-    roundRect(wx, wy, ww, wh, 14);
+    ctx.beginPath();
+    ctx.roundRect(cell.x, cell.y, cell.w, cell.h, 10);
     ctx.fill();
-    ctx.strokeStyle = colors.rule;
+    ctx.strokeStyle = lit ? colors.accent : colors.rule;
     ctx.lineWidth = 3;
     ctx.stroke();
 
+    // The same stage in every window, fitted by one uniform scale.
+    const u = scaleOf(win) * cell.zoom;
+    const sx = cell.x + (cell.w - STAGE.w * u) / 2;
+    const sy = cell.y + (cell.h - STAGE.h * u) / 2;
     ctx.fillStyle = "#f6efe2";
-    ctx.fillRect(sx, sy, sw, sh);
-    // Fake slide content, laid out in stage units so it scales as one piece.
-    const u = sw / STAGE.w;
+    ctx.fillRect(sx, sy, STAGE.w * u, STAGE.h * u);
     ctx.fillStyle = "#15130f";
     ctx.fillRect(sx + 120 * u, sy + 140 * u, 900 * u, 110 * u);
-    ctx.globalAlpha = 0.35;
+    ctx.globalAlpha = a * 0.35;
     for (let i = 0; i < 4; i++) ctx.fillRect(sx + 120 * u, sy + (360 + i * 90) * u, (1300 - i * 160) * u, 40 * u);
-    ctx.globalAlpha = 1;
+    ctx.globalAlpha = a;
     ctx.fillStyle = colors.accent;
     ctx.fillRect(sx + 1450 * u, sy + 360 * u, 350 * u, 560 * u);
+    ctx.globalAlpha = 1;
+  }
 
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    WINDOWS.forEach((win, i) => drawWindow(win, cells[i], alpha[i], current === i + 1));
+    const win = WINDOWS[current - 1] ?? STAGE;
     // Text changes cost a layout, so only write when the text does.
-    setText(sizeEl, `${Math.round(cur.w)} × ${Math.round(cur.h)}`);
-    setText(scaleEl, `× ${scale.toFixed(3)}`);
+    setText(sizeEl, `${win.w} × ${win.h}`);
+    setText(scaleEl, `× ${scaleOf(win).toFixed(3)}`);
   }
 
   function setText(el, text) {
     if (el.textContent !== text) el.textContent = text;
+  }
+
+  // Returns whether the fade is done, so the loop can stop.
+  function advance(now) {
+    fade ??= { from: [...alpha], start: now };
+    const p = Math.min((now - fade.start) / fadeMs, 1);
+    alpha.forEach((_, i) => (alpha[i] = fade.from[i] + (goal(i) - fade.from[i]) * p));
+    return p === 1;
   }
 
   function loop(now) {
@@ -91,14 +98,15 @@ export function mountStageWidget(canvas, readout) {
     raf = settled ? 0 : requestAnimationFrame(loop);
   }
 
-  function play() {
+  function stop() {
     cancelAnimationFrame(raf);
-    raf = requestAnimationFrame(loop);
+    raf = 0;
   }
 
-  function roundRect(x, y, w, h, r) {
-    ctx.beginPath();
-    ctx.roundRect(x, y, w, h, r);
+  function settle() {
+    stop();
+    alpha.forEach((_, i) => (alpha[i] = goal(i)));
+    draw();
   }
 
   // One backing pixel per screen pixel. Print has no deckresize, so it gets
@@ -119,21 +127,17 @@ export function mountStageWidget(canvas, readout) {
   draw();
 
   return onSlide(canvas, {
-    enter: ({ mode }) => {
-      t0 = performance.now();
-      if (mode === "main") play();
-    },
-    leave: () => {
-      cancelAnimationFrame(raf);
-      raf = 0;
-    },
+    enter: () => (arriving = true),
+    leave: settle,
     step: ({ step, mode }) => {
-      target = PRESETS[Math.min(step, PRESETS.length - 1)];
-      if (mode === "main" && !raf) play();
-      else if (mode !== "main") {
-        if (target) Object.assign(cur, target);
-        draw();
+      current = Math.min(step, WINDOWS.length);
+      // Arriving from another slide snaps, like the deck's own steps.
+      if (arriving || mode !== "main") {
+        arriving = false;
+        return settle();
       }
+      fade = null;
+      if (!raf) raf = requestAnimationFrame(loop);
     },
     reveal: fit,
     resize: (detail) => {

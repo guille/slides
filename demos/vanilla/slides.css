@@ -48,6 +48,7 @@
   border-radius: 12px;
   border: 1px solid var(--rule);
   font-size: 44px;
+  transition: color var(--deck-step-duration) ease, background-color var(--deck-step-duration) ease, border-color var(--deck-step-duration) ease;
 }
 .deck .presets li span { font: 400 var(--deck-size-small) var(--deck-font-mono); color: var(--deck-muted); align-self: center; }
 .deck .presets li[data-state="current"] { border-color: var(--deck-accent); background: rgb(232 176 74 / 0.1); }

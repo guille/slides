@@ -122,11 +122,11 @@ thread in Chromium. Slides and components are where regressions come from.
 
 ## Profiling a deck
 
-Run the bundled profiler (`scripts/` in this skill's directory) against a served
+Run the bundled profiler (`<skill-dir>` is this skill's base directory) against a served
 deck (production build for framework demos: `vite preview`, `astro preview`):
 
 ```sh
-uv run scripts/profile.py http://127.0.0.1:8000/demos/vanilla/ [more urls…]
+uv run <skill-dir>/scripts/profile.py http://127.0.0.1:8000/demos/vanilla/ [more urls…]
 ```
 
 It steps through every step of the deck with the arrow keys and prints, for

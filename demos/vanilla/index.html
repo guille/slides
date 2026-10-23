@@ -6,7 +6,7 @@
   <title>Slides are just web pages</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,400..700,0..100;1,9..144,400..700,0..100&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,400..700,0..100;1,9..144,400..700,0..100&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=block">
   <link rel="stylesheet" href="./lib/deck.css">
   <link rel="stylesheet" href="./theme.css">
   <link rel="stylesheet" href="./slides.css">
@@ -109,7 +109,7 @@
         <p class="small muted">One <code>transform: scale()</code>. Letterbox the rest.</p>
       </div>
       <aside class="notes">
-        <p>Live canvas wired with <code>onSlide()</code>: it starts animating on enter, stops on leave, and each step snaps the simulated window to a preset.</p>
+        <p>Live canvas wired with <code>onSlide()</code>: each step lights up one window, and it only draws while that fade runs.</p>
         <p>The list uses the highlight effect: always visible, accent while current.</p>
       </aside>
     </section>
